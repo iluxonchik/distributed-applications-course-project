@@ -8,8 +8,17 @@ using NUnit.Framework.Constraints;
 
 namespace PuppetMaster.Tests
 {
+    /// <summary>
+    /// Tests the simple_conf.config file. This file contains all of the operator types,
+    /// as well as all of the possible individual INPUT_OPS types (pointing to files and pointing to
+    /// other operators). It ONLY tests the REP_FACT 1. It does not contains any lists.
+    /// LoggingLevel is set to "full". Semantics are set to "at-most-once".
+    /// 
+    /// IT'S NOT A VALID CONFIG FILE, in a sense that
+    /// you might have errros at runtime. Its syntax, is however, valid.
+    /// </summary>
     [TestFixture]
-    public class PuppetMasterConfigTest
+    public class PuppetMasterSimpleConfigTest
     {
 
         [SetUp]
