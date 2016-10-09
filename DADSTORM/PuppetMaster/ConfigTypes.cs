@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+/// <summary>
+/// Contains the type definitions used in the Config class.
+/// </summary>
 namespace PuppetMaster
 {
-    public class Class1
+    public enum LoggingLevel
     {
+        FULL, LIGHT
     }
 }
