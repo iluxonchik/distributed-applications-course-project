@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="resources\simple_conf_semantics_default.config" />
     <None Include="resources\simple_conf_logging_default.config" />
     <None Include="resources\simple_conf_logging_light.config" />
     <None Include="resources\simple_conf.config" />

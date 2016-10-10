@@ -12,6 +12,7 @@ namespace PuppetMaster
     {
         private readonly StreamReader confFile;
         private const string LOGGING_LVL_REGEX = @"^LoggingLevel (full|light)\s*\r?$";
+        private const string SEMANTHICS_REGEX = @"^Semantics (at-least-once|at-most-once|exactly-once)\s*\r?$";
         private readonly Action<string, Config>[] regexParsers;
         private readonly string[] REGEX_LIST = { LOGGING_LVL_REGEX };
 
@@ -21,6 +22,7 @@ namespace PuppetMaster
             confFile = new StreamReader(confFilePath);
             regexParsers = new Action<string, Config>[]{
                 (fileContent, config) => ParseLoggingLevel(fileContent, config),
+                (fileContent, config) => ParseSemanthics(fileContent, config),
             };
         }
 
@@ -46,18 +48,45 @@ namespace PuppetMaster
                 switch(match.Groups[1].Value)
                 {
                     case "full":
-                        conf.LoggingLevel = LoggingLevel.FULL;
+                        conf.LoggingLevel = LoggingLevel.Full;
                         break;
                     case "light":
-                        conf.LoggingLevel = LoggingLevel.LIGHT;
+                        conf.LoggingLevel = LoggingLevel.Light;
                         break;
                     default:
-                        conf.LoggingLevel = LoggingLevel.LIGHT;
+                        conf.LoggingLevel = LoggingLevel.Light;
                         break;
                 }
             } else
             {
-                conf.LoggingLevel = LoggingLevel.LIGHT;
+                conf.LoggingLevel = LoggingLevel.Light;
+            }
+        }
+
+        private void ParseSemanthics(string fileContent, Config conf)
+        {
+            Match match = Regex.Match(fileContent, SEMANTHICS_REGEX, RegexOptions.Multiline);
+            if (match.Success)
+            {
+                switch (match.Groups[1].Value)
+                {
+                    case "at-least-once":
+                        conf.Semantics = Semantics.AtLeastOnce;
+                        break;
+                    case "at-most-once":
+                        conf.Semantics = Semantics.AtMostOnce;
+                        break;
+                    case "exactly-once":
+                        conf.Semantics = Semantics.ExactlyOnce;
+                        break;
+                    default:
+                        conf.Semantics = Semantics.AtLeastOnce;
+                        break;
+                }
+            }
+            else
+            {
+                conf.Semantics = Semantics.AtLeastOnce;
             }
         }
     }

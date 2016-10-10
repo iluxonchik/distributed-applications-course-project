@@ -10,6 +10,11 @@ namespace PuppetMaster
 {
     public enum LoggingLevel
     {
-        FULL, LIGHT
+        Full, Light
+    }
+
+    public enum Semantics
+    {
+        AtLeastOnce, AtMostOnce, ExactlyOnce
     }
 }

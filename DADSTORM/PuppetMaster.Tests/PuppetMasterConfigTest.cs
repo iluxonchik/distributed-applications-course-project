@@ -33,6 +33,7 @@ namespace PuppetMaster.Tests
         private readonly string SIMPLE_CONF_SEM_AMO;
         private readonly string SIMPLE_CONF_SEM_ALO;
         private readonly string SIMPLE_CONF_SEM_EO;
+        private readonly string SIMPLE_CONF_SEM_DEFAULT;
 
 
 
@@ -47,6 +48,7 @@ namespace PuppetMaster.Tests
             SIMPLE_CONF_SEM_AMO = SIMPLE_CONF;
             SIMPLE_CONF_SEM_ALO = SIMPLE_CONF_LOG_LIGHT;
             SIMPLE_CONF_SEM_EO = SIMPLE_CONF_LOG_DEFAULT;
+            SIMPLE_CONF_SEM_DEFAULT = RESOURCES_DIR + "simple_conf_semantics_default.config";
         }
 
         [SetUp]
@@ -76,17 +78,44 @@ namespace PuppetMaster.Tests
             ConfigParser cp = new ConfigParser(SIMPLE_CONF);
             Config conf = cp.Parse();
 
-            Assert.That(Is.Equals(conf.LoggingLevel, LoggingLevel.FULL));
+            Assert.That(Is.Equals(conf.LoggingLevel, LoggingLevel.Full));
 
             cp = new ConfigParser(SIMPLE_CONF_LOG_LIGHT);
             conf = cp.Parse();
 
-            Assert.That(Is.Equals(conf.LoggingLevel, LoggingLevel.LIGHT));
+            Assert.That(Is.Equals(conf.LoggingLevel, LoggingLevel.Light));
 
             cp = new ConfigParser(SIMPLE_CONF_LOG_DEFAULT);
             conf = cp.Parse();
 
-            Assert.That(Is.Equals(conf.LoggingLevel, LoggingLevel.LIGHT));
+            Assert.That(Is.Equals(conf.LoggingLevel, LoggingLevel.Light));
+        }
+
+        /// <summary>
+        /// Test all possible combinations of Semantics values.
+        /// </summary>
+        [Test]
+        public void TestSemanticsParsing()
+        {
+            ConfigParser cp = new ConfigParser(SIMPLE_CONF_SEM_ALO);
+            Config conf = cp.Parse();
+
+            Assert.That(Is.Equals(conf.Semantics, Semantics.AtLeastOnce));
+
+            cp = new ConfigParser(SIMPLE_CONF_SEM_AMO);
+            conf = cp.Parse();
+
+            Assert.That(Is.Equals(conf.Semantics, Semantics.AtMostOnce));
+
+            cp = new ConfigParser(SIMPLE_CONF_SEM_EO);
+            conf = cp.Parse();
+
+            Assert.That(Is.Equals(conf.Semantics, Semantics.ExactlyOnce));
+
+            cp = new ConfigParser(SIMPLE_CONF_SEM_DEFAULT);
+            conf = cp.Parse();
+
+            Assert.That(Is.Equals(conf.Semantics, Semantics.AtLeastOnce));
         }
 
     }
