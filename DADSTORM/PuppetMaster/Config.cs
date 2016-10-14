@@ -9,6 +9,7 @@ namespace PuppetMaster
     public class Config
     {
         public LoggingLevel LoggingLevel { get; set; }
+        public List<OperatorSpec> Operators { get; set; }
         public Semantics Semantics { get; set; }
     }
 }

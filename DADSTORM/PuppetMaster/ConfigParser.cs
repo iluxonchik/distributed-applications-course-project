@@ -10,9 +10,16 @@ namespace PuppetMaster
 {
     public class ConfigParser
     {
+        /*
+         * match.Groups["address_list"].Captures[1]
+         */
         private readonly StreamReader confFile;
-        private const string LOGGING_LVL_REGEX = @"^LoggingLevel (full|light)\s*\r?$";
-        private const string SEMANTHICS_REGEX = @"^Semantics (at-least-once|at-most-once|exactly-once)\s*\r?$";
+        private const string LOGGING_LVL_REGEX = @"^LoggingLevel (full|light)\s*?\r?$";
+        private const string SEMANTICS_REGEX = @"^Semantics (at-least-once|at-most-once|exactly-once)\s*?\r?$";
+        private const string OPERATOR_REGEX = @"^(?<operator_id>\w)+? INPUT_OPS (?<input_ops>(?<input_op>(\w\.*)+),? ?)+\r?\n" + // NOTE: accepts "," at the end
+                                              @"REP_FACT (?<rep_fact>\d+) ROUTING (?<routing>\w+?)\r?\n" +
+                                              @"ADDRESS (?<address_list>(?<address>tcp:\/\/\d\.\d\.\d\.\d\:(\d+)\/[\w-]+),? ?)+\r?\n" + // NOTE: accepts "," at the end
+                                              @"OPERATOR_SPEC (?<operator_spec>(?<op_uniq>UNIQ (?<op_uniq_field>\d+))|(?<op_count>COUNT)|(?<op_dup>DUP)|(?<op_filter>FILTER (?<op_filter_field>\d+), (?<op_filter_cond>""(>|<|=)""), (?<op_filter_value>""[a-zA-Z0-10\.\d]+""))|(?<op_custom>CUSTOM (?<op_custom_dll>""\w+\.dll""), (?<op_custom_class>""\w+""), (?<op_custom_method>""\w+"")))\r?\n?";
         private readonly Action<string, Config>[] regexParsers;
         private readonly string[] REGEX_LIST = { LOGGING_LVL_REGEX };
 
@@ -23,6 +30,7 @@ namespace PuppetMaster
             regexParsers = new Action<string, Config>[]{
                 (fileContent, config) => ParseLoggingLevel(fileContent, config),
                 (fileContent, config) => ParseSemanthics(fileContent, config),
+                (fileContent, config) => ParseOperators(fileContent, config),
             };
         }
 
@@ -65,7 +73,7 @@ namespace PuppetMaster
 
         private void ParseSemanthics(string fileContent, Config conf)
         {
-            Match match = Regex.Match(fileContent, SEMANTHICS_REGEX, RegexOptions.Multiline);
+            Match match = Regex.Match(fileContent, SEMANTICS_REGEX, RegexOptions.Multiline);
             if (match.Success)
             {
                 switch (match.Groups[1].Value)
@@ -88,6 +96,11 @@ namespace PuppetMaster
             {
                 conf.Semantics = Semantics.AtLeastOnce;
             }
+        }
+
+        private void ParseOperators(string fileContent, Config conf)
+        {
+           // TODO
         }
     }
 }
