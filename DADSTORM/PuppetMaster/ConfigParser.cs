@@ -100,7 +100,13 @@ namespace PuppetMaster
 
         private void ParseOperators(string fileContent, Config conf)
         {
-           // TODO
+            MatchCollection mc = Regex.Matches(fileContent, OPERATOR_REGEX, RegexOptions.Multiline);
+            List<OperatorSpec> operators = new List<OperatorSpec>();
+            foreach (Match m in mc)
+            {
+                OperatorSpec os = new OperatorSpec();
+                os.Id = m.Groups["operator_id"].Value;
+            }
         }
     }
 }
