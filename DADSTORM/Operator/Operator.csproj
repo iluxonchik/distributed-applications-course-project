@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{9470EB46-F205-4E09-8D4E-C940824C31F1}</ProjectGuid>
+    <ProjectGuid>{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PuppetMaster</RootNamespace>
-    <AssemblyName>PuppetMaster</AssemblyName>
+    <RootNamespace>Operator</RootNamespace>
+    <AssemblyName>Operator</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,13 +40,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config.cs" />
-    <Compile Include="ConfigParser.cs" />
-    <Compile Include="ConfigTypes.cs" />
-    <Compile Include="OperatorInput.cs" />
-    <Compile Include="OperatorRouting.cs" />
-    <Compile Include="OperatorSpec.cs" />
+    <Compile Include="OperatorImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OperatorProxys\OperatorProxys.csproj">
+      <Project>{aa9028d8-fa60-46f2-9398-89f0b6d658f1}</Project>
+      <Name>OperatorProxys</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

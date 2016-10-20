@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMaster", "PuppetMaste
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMaster.Tests", "PuppetMaster.Tests\PuppetMaster.Tests.csproj", "{5F888D14-DC37-49BC-8B7B-C04150849A5D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Operator", "Operator\Operator.csproj", "{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperatorProxys", "OperatorProxys\OperatorProxys.csproj", "{AA9028D8-FA60-46F2-9398-89F0B6D658F1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,6 +29,14 @@ Global
 		{5F888D14-DC37-49BC-8B7B-C04150849A5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F888D14-DC37-49BC-8B7B-C04150849A5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F888D14-DC37-49BC-8B7B-C04150849A5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA9028D8-FA60-46F2-9398-89F0B6D658F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA9028D8-FA60-46F2-9398-89F0B6D658F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA9028D8-FA60-46F2-9398-89F0B6D658F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA9028D8-FA60-46F2-9398-89F0B6D658F1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,5 +44,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{9470EB46-F205-4E09-8D4E-C940824C31F1} = {1F8CFF2B-75ED-4877-931F-49A8566232C7}
 		{5F888D14-DC37-49BC-8B7B-C04150849A5D} = {A6C015AB-E12E-42AB-B216-DDB84E9BE43A}
+		{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD} = {1F8CFF2B-75ED-4877-931F-49A8566232C7}
+		{AA9028D8-FA60-46F2-9398-89F0B6D658F1} = {1F8CFF2B-75ED-4877-931F-49A8566232C7}
 	EndGlobalSection
 EndGlobal
