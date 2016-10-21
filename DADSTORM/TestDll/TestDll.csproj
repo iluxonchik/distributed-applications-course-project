@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}</ProjectGuid>
+    <ProjectGuid>{30576F1A-816D-4579-BA93-FAE77272E40C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Operator</RootNamespace>
-    <AssemblyName>Operator</AssemblyName>
+    <RootNamespace>TestDll</RootNamespace>
+    <AssemblyName>TestDll</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,19 +40,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CountOperator.cs" />
-    <Compile Include="CustomOperator.cs" />
-    <Compile Include="DupOperator.cs" />
-    <Compile Include="FilterOperator.cs" />
-    <Compile Include="UniqOperator.cs" />
-    <Compile Include="OperatorImpl.cs" />
+    <Compile Include="ChangeTuple.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\OperatorProxys\OperatorProxys.csproj">
-      <Project>{aa9028d8-fa60-46f2-9398-89f0b6d658f1}</Project>
-      <Name>OperatorProxys</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

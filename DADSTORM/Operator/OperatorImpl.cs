@@ -35,11 +35,11 @@ namespace Operator
         /// new tuples are added to the tail
         /// to remove oldest tuple remove from the head
         /// </summary>
-        private List<string[]> waitingTuples;
+        private List<List<string>> waitingTuples;
         /// <summary>
         /// list of tuples already processed and ready to be outputed
-        /// </summary>
-        private List<string[]> readyTuples;
+        /// </summary<>
+        private List<List<string>> readyTuples;
 
         public const int DEFAULT_NUM_WORKERS= 10;
 
@@ -48,8 +48,8 @@ namespace Operator
         {
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
-            this.waitingTuples = new List<string[]>();
-            this.readyTuples = new List<string[]>();
+            this.waitingTuples = new List<List<string>>();
+            this.readyTuples = new List<List<string>>();
            
         }
 
@@ -84,26 +84,22 @@ namespace Operator
         }
         private void TreatTuples()
         {
-            string[] tuple = this.waitingTuples.First();
+            List<string> tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
-           tuple= Operation(tuple);
-            this.readyTuples.Add(tuple);
+            tuple = Operation(tuple);
+
+            if (tuple != null)
+                this.readyTuples.Add(tuple);
+
+            /* no need to save the tuple */
         }
 
-        //TODO: implents the diferent types of operators
-        protected abstract string[] Operation(string[] tuple);
-        
         public void Start()
         {
             //this.start = true;
 
             for (int i = 0; i < this.num_workers; i++)
                 this.workers[i].Start();
-        }
-
-        public void status()
-        {
-            throw new NotImplementedException();
         }
 
         public void Crash()
@@ -127,7 +123,7 @@ namespace Operator
             if (x_ms > 0)
                 this.interval = x_ms;
         }
-        public void ReceiveTuples(List<string [] >tuples)
+        public void ReceiveTuples(List<List<string>>tuples)
         {
             while (true)
             {
@@ -140,7 +136,7 @@ namespace Operator
             
         }
 
-       public void ReceiveTuple(string[] tuple)
+       public void ReceiveTuple(List<string> tuple)
         {
             while (true)
             {
@@ -153,6 +149,7 @@ namespace Operator
             }
            
         }
+        
 
         //TODO: routing and semmantics shoud apear here i think
         public void SendTuples()
@@ -160,5 +157,13 @@ namespace Operator
             throw new NotImplementedException();
         }
 
+
+        //TODO: implents the diferent types of operators
+        public abstract List<string> Operation(List<string> tuple);
+
+        public void Status()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

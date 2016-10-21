@@ -32,7 +32,7 @@ namespace OperatorProxys
         /// should present brief information about the state of the system 
         /// (who is present, which nodes are presumed failed, etc...).
         /// </summary>
-        void status();
+        void Status();
 
         /*
          * Replicas debug commands 
@@ -71,7 +71,7 @@ namespace OperatorProxys
         /// Assuming a tuple is represented By a string array, it can be a Abstract type
         /// 
         /// <param name="tuples">list containing the tuples</param>
-        void ReceiveTuples(List<string[]> tuples);
+        void ReceiveTuples(List<List<String>> tuples);
 
         
         /// <summary>
@@ -79,7 +79,7 @@ namespace OperatorProxys
         /// and gives him the tuples that he wants to
         /// </summary>
         /// <param name="tuple"></param>
-        void ReceiveTuple(String[] tuple);
+        void ReceiveTuple(List<String> tuple);
     }
     
 }
