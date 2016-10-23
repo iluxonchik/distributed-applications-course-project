@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace PuppetMaster
 {
@@ -10,6 +12,15 @@ namespace PuppetMaster
     /// </summary>
     public class OperatorSpec
     {
+        public class OperatorSpecComparer : IComparer<OperatorSpec>
+        {
+            public int Compare(OperatorSpec x, OperatorSpec y)
+            {
+                // This is here to simplify testing. Useful when comparing expected and actual OperatorSpecs
+                return JsonConvert.SerializeObject(x).CompareTo(JsonConvert.SerializeObject(y));
+            }
+        }
+
         public string Id { get; set; }
         public List<OperatorInput> Inputs;
         public OperatorType Type { get; set; }
@@ -50,4 +61,5 @@ namespace PuppetMaster
          * }
          */
     }
+
 }

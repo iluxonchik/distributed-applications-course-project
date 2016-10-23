@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PuppetMaster.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,10 +17,10 @@ namespace PuppetMaster
         private readonly StreamReader confFile;
         private const string LOGGING_LVL_REGEX = @"^LoggingLevel (full|light)\s*?\r?$";
         private const string SEMANTICS_REGEX = @"^Semantics (at-least-once|at-most-once|exactly-once)\s*?\r?$";
-        private const string OPERATOR_REGEX = @"^(?<operator_id>\w)+? INPUT_OPS (?<input_ops>(?<input_op>(\w\.*)+),? ?)+\r?\n" + // NOTE: accepts "," at the end
-                                              @"REP_FACT (?<rep_fact>\d+) ROUTING (?<routing>\w+?)\r?\n" +
+        private const string OPERATOR_REGEX = @"^(?<operator_id>\w+) INPUT_OPS (?<input_ops>(?<input_op>(\w\.*)+),? ?)+\r?\n" + // NOTE: accepts "," at the end
+                                              @"REP_FACT (?<rep_fact>\d+) ROUTING (?<routing>(primary|random|hashing\(\d+\)))\r?\n" +
                                               @"ADDRESS (?<address_list>(?<address>tcp:\/\/\d\.\d\.\d\.\d\:(\d+)\/[\w-]+),? ?)+\r?\n" + // NOTE: accepts "," at the end
-                                              @"OPERATOR_SPEC (?<operator_spec>(?<op_uniq>UNIQ (?<op_uniq_field>\d+))|(?<op_count>COUNT)|(?<op_dup>DUP)|(?<op_filter>FILTER (?<op_filter_field>\d+), (?<op_filter_cond>""(>|<|=)""), (?<op_filter_value>""[a-zA-Z0-10\.\d]+""))|(?<op_custom>CUSTOM (?<op_custom_dll>""\w+\.dll""), (?<op_custom_class>""\w+""), (?<op_custom_method>""\w+"")))\r?\n?";
+                                              @"OPERATOR_SPEC (?<op_spec>(?<op_uniq>UNIQ (?<op_uniq_field>\d+))|(?<op_count>COUNT)|(?<op_dup>DUP)|(?<op_filter>FILTER (?<op_filter_field>\d+), ?(?<op_filter_cond>""(>|<|=)""), ?(?<op_filter_value>""[a-zA-Z0-10\.\d]+""))|(?<op_custom>CUSTOM (?<op_custom_dll>""\w+\.dll""), (?<op_custom_class>""\w+""), (?<op_custom_method>""\w+"")))\r?\n?";
         private readonly Action<string, Config>[] regexParsers;
         private readonly string[] REGEX_LIST = { LOGGING_LVL_REGEX };
 
@@ -106,7 +107,135 @@ namespace PuppetMaster
             {
                 OperatorSpec os = new OperatorSpec();
                 os.Id = m.Groups["operator_id"].Value;
+                os.ReplicationFactor = Int32.Parse(m.Groups["rep_fact"].Value);
+
+                os.Type = ParseOperatorType(m);
+                os.Inputs = ParseOperatorInputList(m);
+                os.Addrs = ParseOperatorAddrList(m);
+                os.Args = ParseOperatorArgList(m, os.Type); // yeah, dependency from ParseOperatorType, but simplifies things
+                os.Routing = ParseOperatorRouting(m);
+                operators.Add(os);
             }
+            conf.Operators = operators;
+        }
+
+        private OperatorType ParseOperatorType(Match m)
+        {
+            if (!String.IsNullOrEmpty(m.Groups["op_uniq"].Value))
+            {
+                return OperatorType.Uniq;
+            }
+
+            if (!String.IsNullOrEmpty(m.Groups["op_dup"].Value))
+            {
+                return OperatorType.Dup;
+            }
+
+            if (!String.IsNullOrEmpty(m.Groups["op_filter"].Value))
+            {
+                return OperatorType.Filer;
+            }
+
+            if (!String.IsNullOrEmpty(m.Groups["op_custom"].Value))
+            {
+                return OperatorType.Custom;
+            }
+
+            if (!String.IsNullOrEmpty(m.Groups["op_count"].Value))
+            {
+                return OperatorType.Count;
+            }
+
+            // it's better to stop than assume some default values
+            throw new UnknownOperatorTypeException(String.Format("{0} is an invalid value for OPERATOR_SPEC", m.Groups["op_spec"]));        }
+
+        private OperatorRouting ParseOperatorRouting(Match m)
+        {
+            string routingValue = m.Groups["routing"].Value;
+            OperatorRouting or = new OperatorRouting();
+            switch(routingValue)
+            {
+                case "random":
+                     or.Type = RoutingType.Random;
+                     break;
+                case "primary":
+                    or.Type = RoutingType.Primary;
+                    break;
+                default:
+                    // since hashing operator routing invloves Regex and possible exceptio throwing, move it to its own method
+                    ParseHashingRouting(or, routingValue);
+                    break;
+            }
+            return or;
+        }
+
+        private void ParseHashingRouting(OperatorRouting or, string routingValue)
+        {
+            Match m = Regex.Match(routingValue, @"hashing\((?<arg>\d+)\)");
+            if (m.Success)
+            {
+                or.Type = RoutingType.Hashing;
+                or.Arg = Int32.Parse(m.Groups["arg"].Value);
+            } else
+            {
+                throw new UnknownOperatorRoutingException();
+            }
+        }
+
+        private List<string> ParseOperatorArgList(Match m, OperatorType opType)
+        {
+            List<string> argList = new List<string>();
+            if (opType == OperatorType.Count || opType == OperatorType.Dup)
+            {
+                // do nothing, this is here for clarity 
+            }
+            else if (opType == OperatorType.Uniq)
+            {
+                argList.Add(m.Groups["op_uniq_field"].Value);
+            }
+            else if (opType == OperatorType.Custom) {
+                argList.Add(m.Groups["op_custom_dll"].Value);
+                argList.Add(m.Groups["op_custom_class"].Value);
+                argList.Add(m.Groups["op_custom_method"].Value);
+            }
+            else if (opType == OperatorType.Filer)
+            {
+                argList.Add(m.Groups["op_filter_field"].Value);
+                argList.Add(m.Groups["op_filter_cond"].Value);
+                argList.Add(m.Groups["op_filter_value"].Value);
+
+            }
+            return argList;
+        }
+
+        private List<string> ParseOperatorAddrList(Match m)
+        {
+            List<string> addrList = new List<string>();
+            foreach (Capture c in m.Groups["address"].Captures)
+            {
+                addrList.Add(c.Value);
+            }
+            return addrList;
+        }
+
+        private List<OperatorInput> ParseOperatorInputList(Match m)
+        {
+            List<OperatorInput> opInputList = new List<OperatorInput>();
+            
+            foreach(Capture c in m.Groups["input_op"].Captures)
+            {
+                OperatorInput opInput = new OperatorInput();
+                opInput.Name =  c.Value;
+                opInput.Type = InputType.File; // TODO: input type is not always a File
+                                               /* Possible solution to TODO above:
+                                                * One of the solution would be store all of the operator IDs in a list during parsing
+                                                * and then at the end run through the Config.Operators and for each Cofig.Operator.OperatorSpec.Name
+                                                * check if that name is a previously known Operator ID, if so, change its type to InputType.Operator,
+                                                * i.e. if its name is in the stored list, mark it as InputType.Operator.
+                                                */
+                opInputList.Add(opInput);
+            }
+            return opInputList;
         }
     }
 }

@@ -59,7 +59,7 @@ namespace PuppetMaster.Tests
              * (select your VisualStudio instance when a window pops up). 
              */
 
-            //System.Diagnostics.Debugger.Launch();
+            // System.Diagnostics.Debugger.Launch();
             simple_conf_file = new StreamReader(SIMPLE_CONF);
         }
 
@@ -164,7 +164,7 @@ namespace PuppetMaster.Tests
                 Type = OperatorType.Uniq
             };
 
-            Assert.That(conf.Operators, Has.Some.Contains(expected));
+            Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
         }
 
 
