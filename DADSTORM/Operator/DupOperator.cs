@@ -12,5 +12,6 @@ namespace Operator
         {
             return tuple;
         }
+        
     }
 }

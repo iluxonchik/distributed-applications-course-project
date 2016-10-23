@@ -33,5 +33,6 @@ namespace Operator
             }
             return tuple;
         }
+        
     }
 }

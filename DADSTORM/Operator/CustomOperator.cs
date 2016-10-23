@@ -35,30 +35,34 @@ namespace Operator
 
         public override List<string> Operation(List<string> tuple)
         {
+
             Assembly assembly = Assembly.LoadFile(dll_);
-
-            Type type = assembly.GetType(class_);
-
-            if (type != null)
+            if (assembly != null)
             {
-                var methodInfo = type.GetMethod(method_, new Type[] { typeof(List<string>) });
 
-                if (methodInfo != null)
+                Type type = assembly.GetType(class_);
+                if (type != null)
                 {
-                    var o = Activator.CreateInstance(type);
-                    object[] params_ = new object[] { tuple };
-                    var result = methodInfo.Invoke(o, params_);
 
-                    /* maybe to heavy or expensive ? */
-                    List<string> res = new List<string>(((IEnumerable)result).Cast<object>()
-                                     .Select(x => x.ToString())
-                                     .ToArray());
+                    var methodInfo = type.GetMethod(method_, new Type[] { typeof(List<string>) });
+                    if (methodInfo != null)
+                    {
+                        var o = Activator.CreateInstance(type);
+                        object[] params_ = new object[] { tuple };
+                        var result = methodInfo.Invoke(o, params_);
 
-                    return res;
+                        /* maybe to heavy or expensive ? */
+                        List<string> res = new List<string>(((IEnumerable)result).Cast<object>()
+                                         .Select(x => x.ToString())
+                                         .ToArray());
+
+                        return res;
+                    }
                 }
             }
 
             return null;
         }
+        
     }
 }

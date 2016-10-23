@@ -25,6 +25,6 @@ namespace Operator
             /* check value later */
             return null;
         }
-       
+        
     }
 }

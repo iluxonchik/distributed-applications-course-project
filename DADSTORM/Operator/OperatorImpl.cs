@@ -36,41 +36,49 @@ namespace Operator
         /// to remove oldest tuple remove from the head
         /// </summary>
         private List<List<string>> waitingTuples;
+
         /// <summary>
         /// list of tuples already processed and ready to be outputed
         /// </summary<>
         private List<List<string>> readyTuples;
 
-        public const int DEFAULT_NUM_WORKERS= 10;
+        public const int DEFAULT_NUM_WORKERS = 10;
 
-     
+
         public OperatorImpl()
         {
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
             this.waitingTuples = new List<List<string>>();
             this.readyTuples = new List<List<string>>();
-           
+
         }
 
+
+        // Start all the workers at once
         private void initWorkers()
         {
-            for(int i = 0; i < num_workers; i++)
+            for (int i = 0; i < num_workers; i++)
             {
                 ThreadStart st = new ThreadStart(this.consume);
                 workers[i] = new Thread(st);
-               
+
             }
         }
 
+
+        /// <summary>
+        /// Controlled consume
+        /// </summary>
         public void consume()
         {
             while (true)
             {
                 lock (this)
                 {
-                    while (this.waitingTuples.Count==0)
+                    while (this.waitingTuples.Count == 0)
                         Monitor.Wait(this);
+
                     if (!this.freeze)
                     {
                         if (this.interval > 0)
@@ -78,10 +86,10 @@ namespace Operator
                         TreatTuples();
                         Monitor.PulseAll(this);
                     }
-
                 }
             }
         }
+
         private void TreatTuples()
         {
             List<string> tuple = this.waitingTuples.First();
@@ -94,6 +102,10 @@ namespace Operator
             /* no need to save the tuple */
         }
 
+
+        /// <summary>
+        /// Commands accepted
+        /// </summary>
         public void Start()
         {
             //this.start = true;
@@ -102,6 +114,22 @@ namespace Operator
                 this.workers[i].Start();
         }
 
+        public void Interval(int x_ms)
+        {
+            if (x_ms > 0)
+                this.interval = x_ms;
+        }
+
+        // Depends of the specific operator ??
+        public void Status()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        /// <summary>
+        /// Debugging commands
+        /// </summary>
         public void Crash()
         {
             System.Environment.Exit(1);
@@ -112,31 +140,16 @@ namespace Operator
             this.freeze = true;
         }
 
-
         public void UnFreeze()
         {
             this.freeze = false;
         }
 
-        public void Interval(int x_ms)
-        {
-            if (x_ms > 0)
-                this.interval = x_ms;
-        }
-        public void ReceiveTuples(List<List<string>>tuples)
-        {
-            while (true)
-            {
-                lock(this){
-                    this.waitingTuples.AddRange(tuples);
-                    Monitor.PulseAll(this);
-                    break;
-                }
-            }
-            
-        }
 
-       public void ReceiveTuple(List<string> tuple)
+        /// <summary>
+        /// Tuple manipulation commands
+        /// </summary>
+        public void ReceiveTuple(List<string> tuple)
         {
             while (true)
             {
@@ -147,9 +160,22 @@ namespace Operator
                     break;
                 }
             }
-           
+
         }
-        
+
+        public void ReceiveTuples(List<List<string>> tuples)
+        {
+            while (true)
+            {
+                lock (this)
+                {
+                    this.waitingTuples.AddRange(tuples);
+                    Monitor.PulseAll(this);
+                    break;
+                }
+            }
+
+        }
 
         //TODO: routing and semmantics shoud apear here i think
         public void SendTuples()
@@ -158,12 +184,11 @@ namespace Operator
         }
 
 
-        //TODO: implents the diferent types of operators
+        /// <summary>
+        /// Specific operator type of operation
+        /// implents the diferent types of operators
+        /// </summary>
         public abstract List<string> Operation(List<string> tuple);
 
-        public void Status()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
