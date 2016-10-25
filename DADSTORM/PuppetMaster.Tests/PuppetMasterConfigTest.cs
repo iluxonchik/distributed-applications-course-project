@@ -59,7 +59,7 @@ namespace PuppetMaster.Tests
              * (select your VisualStudio instance when a window pops up). 
              */
 
-            //System.Diagnostics.Debugger.Launch();
+            // System.Diagnostics.Debugger.Launch();
             simple_conf_file = new StreamReader(SIMPLE_CONF);
         }
 
@@ -117,6 +117,56 @@ namespace PuppetMaster.Tests
 
             Assert.That(Is.Equals(conf.Semantics, Semantics.AtLeastOnce));
         }
+
+        /* NOTE: I know that operator tests could've used more isolation, but there isn't enough
+         * time for that, so the parsing will be done all at once, then just checks to make sure
+         * that the desired operators are present within the parsed list.
+         */
+
+        /// <summary>
+        /// Test that the expected amount of operators is parsed.
+        /// </summary>
+        [Test]
+        public void TestOperatorCount()
+        {
+            ConfigParser cp = new ConfigParser(SIMPLE_CONF);
+            Config conf = cp.Parse();
+            Assert.That(conf.Operators, Is.Not.Null.Or.Empty, "Operator config list is null or empty");
+            Assert.That(Is.Equals(conf.Operators.Count, 5));
+        }
+       
+        [Test]
+        public void TestUniqOperator()
+        {
+            ConfigParser cp = new ConfigParser(SIMPLE_CONF);
+            Config conf = cp.Parse();
+
+            // Build expected operator
+            List<OperatorInput> expInputs = new List<OperatorInput>();
+            expInputs.Add(new OperatorInput() { Name = "1992", Type = InputType.File });
+
+            List<string> expAddrs = new List<string>();
+            expAddrs.Add("tcp://1.2.3.4:11000/protege-of-the-d-r-e");
+
+            List<string> expArgs = new List<string>();
+            expArgs.Add("2");
+
+            OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Random };
+
+            OperatorSpec expected = new OperatorSpec()
+            {
+                Id = "OP1",
+                Inputs = expInputs,
+                ReplicationFactor = 1,
+                Addrs = expAddrs,
+                Args = expArgs,
+                Routing = expRouting,
+                Type = OperatorType.Uniq
+            };
+
+            Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
+        }
+
 
     }
 }
