@@ -23,11 +23,10 @@ namespace Operator.Tests
         private readonly List<List<string>> tuples = new List<List<string>> { tuple1, tuple2 };
 
         /* build directory of TestDll, change as necessary */
-        private readonly string dllName = @"C:\Users\Diogo\Source\Repos\distributed-applications-course-project\DADSTORM\TestDll\bin\Debug\TestDll.dll";
 
-        private readonly string className = "TestDll.ChangeTuple";
-        private readonly string methodName = "DuplicateTuple";
-
+        private static readonly string dllName = TestContext.CurrentContext.TestDirectory + "../../../resources/TestDll.dll";
+        private static readonly string className = "TestDll.ChangeTuple";
+        private static readonly string methodName = "DuplicateTuple";
 
         [SetUp]
         public void SetUp()
@@ -98,6 +97,7 @@ namespace Operator.Tests
         [Test]
         public void TestCustomOperator()
         {
+            
             Operator.CustomOperator co = new CustomOperator(dllName, className, methodName);
 
             /* the tuple which content should be result */
