@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using OperatorProxys;
 
 namespace Operator
 {
@@ -33,7 +34,7 @@ namespace Operator
             method_ = method_m;
         }
 
-        public override List<string> Operation(List<string> tuple)
+        public override OperatorTuple Operation(OperatorTuple tuple)
         {
 
             Assembly assembly = Assembly.LoadFile(dll_);
@@ -48,7 +49,7 @@ namespace Operator
                     if (methodInfo != null)
                     {
                         var o = Activator.CreateInstance(type);
-                        object[] params_ = new object[] { tuple };
+                        object[] params_ = new object[] { tuple.Tuple };
                         var result = methodInfo.Invoke(o, params_);
 
                         /* maybe to heavy or expensive ? */
@@ -56,7 +57,7 @@ namespace Operator
                                          .Select(x => x.ToString())
                                          .ToArray());
 
-                        return res;
+                        return new OperatorTuple(res);
                     }
                 }
             }

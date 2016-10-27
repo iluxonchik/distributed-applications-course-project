@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Operator
 {
-    public abstract class OperatorImpl : MarshalByRefObject, OperatorProxy, ProcessingNodesProxy
+    public abstract class OperatorImpl :  IOperatorProxy, IProcessingNodesProxy
     {
         //TODO:where does the routing and the and process semantics cames in??? probably in
 
@@ -35,12 +35,12 @@ namespace Operator
         /// new tuples are added to the tail
         /// to remove oldest tuple remove from the head
         /// </summary>
-        private List<List<string>> waitingTuples;
+        private List<OperatorTuple> waitingTuples;
 
         /// <summary>
         /// list of tuples already processed and ready to be outputed
         /// </summary<>
-        private List<List<string>> readyTuples;
+        private List<OperatorTuple> readyTuples;
 
         public const int DEFAULT_NUM_WORKERS = 10;
 
@@ -49,8 +49,8 @@ namespace Operator
         {
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
-            this.waitingTuples = new List<List<string>>();
-            this.readyTuples = new List<List<string>>();
+            this.waitingTuples = new List<OperatorTuple>();
+            this.readyTuples = new List<OperatorTuple>();
 
         }
 
@@ -92,7 +92,7 @@ namespace Operator
 
         private void TreatTuples()
         {
-            List<string> tuple = this.waitingTuples.First();
+            OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
             tuple = Operation(tuple);
 
@@ -149,7 +149,7 @@ namespace Operator
         /// <summary>
         /// Tuple manipulation commands
         /// </summary>
-        public void ReceiveTuple(List<string> tuple)
+        public void ReceiveTuple(OperatorTuple tuple)
         {
             while (true)
             {
@@ -163,7 +163,7 @@ namespace Operator
 
         }
 
-        public void ReceiveTuples(List<List<string>> tuples)
+        public void ReceiveTuples(List<OperatorTuple> tuples)
         {
             while (true)
             {
@@ -188,7 +188,7 @@ namespace Operator
         /// Specific operator type of operation
         /// implents the diferent types of operators
         /// </summary>
-        public abstract List<string> Operation(List<string> tuple);
+        public abstract OperatorTuple Operation(OperatorTuple tuple);
 
     }
 }

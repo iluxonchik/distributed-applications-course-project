@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using OperatorProxys;
 namespace Operator
 {
     public class FilterOperator : OperatorImpl
@@ -31,24 +31,24 @@ namespace Operator
         }
         
         /* WARNING verififcar a operacao é assim: se a string for igual a operacao desejada devolve tuplo */
-        public override List<string> Operation(List<string> tuple)
+        public override OperatorTuple Operation(OperatorTuple tuple)
         {
             switch(cond)
             {
                 case "<":
-                        if (String.Compare(tuple[id], compare) < 0)
+                        if (String.Compare(tuple.Tuple[id], compare) < 0)
                         {
                             return tuple;
                         }
                     break;
                 case "=":
-                    if (String.Compare(tuple[id], compare) == 0)
+                    if (String.Compare(tuple.Tuple[id], compare) == 0)
                     {
                         return tuple;
                     }
                     break;
                 case ">":
-                    if (String.Compare(tuple[id], compare) > 0)
+                    if (String.Compare(tuple.Tuple[id], compare) > 0)
                     {
                         return tuple;
                     }

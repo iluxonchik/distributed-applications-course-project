@@ -8,7 +8,7 @@ namespace OperatorProxys
 {
    public  class OperatorTuple
     {
-        List<string> Tuple { get; set; }
+     public   List<string> Tuple { get; set; }
 
     public OperatorTuple (List<String> tuple)
         {

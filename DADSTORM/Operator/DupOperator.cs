@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using OperatorProxys;
 namespace Operator
 {
     public class DupOperator : OperatorImpl
     {
-        public override List<string> Operation(List<string> tuple)
+        public override OperatorTuple Operation(OperatorTuple tuple)
         {
             return tuple;
         }

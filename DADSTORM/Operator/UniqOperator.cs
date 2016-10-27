@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OperatorProxys;
 
 namespace Operator
 {
@@ -12,26 +13,26 @@ namespace Operator
         /// save the id of the field_number
         /// </summary>
         private int id;
+        private ISet<string> uniq;
 
         public UniqOperator(int id_) : base()
         {
+            this.uniq = new HashSet<string>();
             id = id_;
         }
 
         /* WARNING verififcar a operacao é assim: retorna tuplo original 
          * se n repetir a string em + nenhuma posicao
          */
-        public override List<string> Operation(List<string> tuple)
+        public override OperatorTuple Operation(OperatorTuple tuple)
         {
-            for (int i = 0; i < tuple.Count; i++)
+            if (!this.uniq.Contains(tuple.Tuple[id]))
             {
-                if ((tuple[id].Equals(tuple[i])) && (id != i))
-                {
-                    return null;
-                }
-
+                uniq.Add(tuple.Tuple[id]);
+                return tuple;
             }
-            return tuple;
+            return null;
+            
         }
         
     }

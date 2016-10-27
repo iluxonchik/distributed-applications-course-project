@@ -11,7 +11,7 @@ namespace OperatorProxys
     /// Interfece of all nodes that process stuff
     /// Configuration Commnds that the Operator offers to PuppetMaster
     /// </summary>
-    public interface ProcessingNodesProxy
+    public interface IProcessingNodesProxy
     {
         /// <summary>
         /// starts the operator
@@ -72,7 +72,7 @@ namespace OperatorProxys
         /// Assuming a tuple is represented By a string array, it can be a Abstract type
         /// 
         /// <param name="tuples">list containing the tuples</param>
-        void ReceiveTuples(List<List<String>> tuples);
+        void ReceiveTuples(List<OperatorTuple> tuples);
 
         
         /// <summary>

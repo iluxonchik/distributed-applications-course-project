@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using OperatorProxys;
 
 namespace Operator
 {
@@ -18,9 +19,9 @@ namespace Operator
             countResult = 0;
         }
 
-        public override List<string> Operation(List<string> tuple)
+        public override OperatorTuple Operation(OperatorTuple tuple)
         {
-            countResult += tuple.Count;
+            countResult++;
 
             /* check value later */
             return null;
