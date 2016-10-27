@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace OperatorProxys
 {
     /// <summary>
@@ -58,7 +59,7 @@ namespace OperatorProxys
 
     }
 
-    public interface OperatorProxy
+    public interface IOperatorProxy
     {
         // it may be usefull for the operator to be able to receive a tuple or a collection of tuples
 
@@ -79,7 +80,7 @@ namespace OperatorProxys
         /// and gives him the tuples that he wants to
         /// </summary>
         /// <param name="tuple"></param>
-        void ReceiveTuple(List<String> tuple);
+        void ReceiveTuple(OperatorTuple tuple);
     }
     
 }

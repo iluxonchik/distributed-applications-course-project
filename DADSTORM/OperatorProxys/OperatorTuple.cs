@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Operator
+namespace OperatorProxys
 {
-    class OperatorTuple
+   public  class OperatorTuple
     {
         List<string> Tuple { get; set; }
 
