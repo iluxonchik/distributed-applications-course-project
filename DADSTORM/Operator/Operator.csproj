@@ -44,6 +44,7 @@
     <Compile Include="CustomOperator.cs" />
     <Compile Include="DupOperator.cs" />
     <Compile Include="FilterOperator.cs" />
+    <Compile Include="OperatorTuple.cs" />
     <Compile Include="UniqOperator.cs" />
     <Compile Include="OperatorImpl.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
