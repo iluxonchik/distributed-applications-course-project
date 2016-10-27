@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using Operator;
+using OperatorProxys;
 
 namespace Operator.Tests
 {
@@ -16,11 +17,12 @@ namespace Operator.Tests
         /// <summary>
         /// simple variables to be used in the test
         /// </summary>
-        private static readonly List<string> tuple1 = new List<string> { "test1", "test2", "test3", "Ola", "ola" };
-        private static readonly List<string> tuple2 = new List<string> { "test4", "test5", "test6", "test6" };
-        private static readonly List<string> tuple3 = new List<string> { "test1", "test2", "test3" };
+        private static readonly OperatorTuple tuple1 = new OperatorTuple(new List<string> { "test1", "test2", "test3", "Ola", "ola" });
+        private static readonly OperatorTuple tuple2 = new OperatorTuple(new List<string> { "test4", "test5", "test6", "test6" });    
 
-        private readonly List<List<string>> tuples = new List<List<string>> { tuple1, tuple2 };
+        private static readonly OperatorTuple tuple3 = new OperatorTuple(new List<string> { "test1", "test2", "test3" });
+
+        private readonly List<OperatorTuple> tuples = new List<OperatorTuple> { tuple1, tuple2 };
 
         /* build directory of TestDll, change as necessary */
 
@@ -43,10 +45,10 @@ namespace Operator.Tests
         [Test]
         public void TestUniqueOperator()
         {
-            Operator.UniqOperator uo = new UniqOperator(3);
+            Operator.UniqOperator uo = new UniqOperator(2);
             Assert.That(Is.Equals(uo.Operation(tuple1), tuple1));
 
-            Assert.That(Is.Equals(uo.Operation(tuple2), null));
+            Assert.That(Is.Equals(uo.Operation(tuple3), null));
 
             uo = new UniqOperator(1);
             Assert.That(Is.Equals(uo.Operation(tuple2), tuple2));
@@ -57,16 +59,16 @@ namespace Operator.Tests
         {
             Operator.CountOperator co = new CountOperator();
             Assert.That(Is.Equals(co.Operation(tuple1), null));
-            Assert.That(Is.Equals(co.countResult, 5));
+            Assert.That(Is.Equals(co.countResult, 1));
 
             Assert.That(Is.Equals(co.Operation(tuple2), null));
-            Assert.That(Is.Equals(co.countResult, 9));
+            Assert.That(Is.Equals(co.countResult, 2));
 
             Assert.That(Is.Equals(co.Operation(tuple2), null));
-            Assert.That(Is.Equals(co.countResult, 13));
+            Assert.That(Is.Equals(co.countResult, 3));
 
             Assert.That(Is.Equals(co.Operation(tuple2), null));
-            Assert.That(!Is.Equals(co.countResult, 13));
+            Assert.That(!Is.Equals(co.countResult, 3));
         }
 
         [Test]
@@ -104,15 +106,15 @@ namespace Operator.Tests
             List<string> tupleCompare = new List<string> { "test1", "test2", "test3", "test1", "test2", "test3" };
 
             /* invoke operation */
-            List<string> res = co.Operation(tuple3);
+            OperatorTuple res = co.Operation(tuple3);
 
             /* the size of both tuples must be equal */
-            Assert.That(Is.Equals(res.Count, tupleCompare.Count));
+            Assert.That(Is.Equals(res.Tuple.Count, tupleCompare.Count));
 
             /* compare each string in the tuple, must be equal */
-            for (int i = 0; i < res.Count; i++)
+            for (int i = 0; i < res.Tuple.Count; i++)
             {
-                Assert.That(Is.Equals(res[i], tupleCompare[i]));
+                Assert.That(Is.Equals(res.Tuple[i], tupleCompare[i]));
             }
         }
     }

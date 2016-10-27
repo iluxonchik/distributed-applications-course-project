@@ -54,6 +54,10 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\OperatorProxys\OperatorProxys.csproj">
+      <Project>{AA9028D8-FA60-46F2-9398-89F0B6D658F1}</Project>
+      <Name>OperatorProxys</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Operator\Operator.csproj">
       <Project>{acb5537c-add5-4e2b-bff4-83f9bbce0afd}</Project>
       <Name>Operator</Name>
