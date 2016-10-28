@@ -51,6 +51,16 @@ namespace PuppetMaster
             }
         }
 
+        public override string ToString()
+        {
+            string inputs = "";
+            foreach (OperatorInput oi in Inputs)
+            {
+                inputs += oi.ToString() + ";";
+            }
+            return String.Format("ID: {0}, Type: {1}, Inputs: [{2}]", Id, Type, inputs);
+        }
+
         /*
          * public Operator GetInstance() {
          *      // This is where polymorphism would've made the code cleaner
