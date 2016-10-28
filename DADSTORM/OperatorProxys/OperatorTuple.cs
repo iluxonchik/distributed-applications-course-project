@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace OperatorProxys
-{
+{ [Serializable]
    public  class OperatorTuple
     {
      public   List<string> Tuple { get; set; }

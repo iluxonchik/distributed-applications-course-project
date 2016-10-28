@@ -9,7 +9,8 @@ using System.Threading;
 
 namespace Operator
 {
-    public abstract class OperatorImpl :  IOperatorProxy, IProcessingNodesProxy
+    
+    public abstract class OperatorImpl :MarshalByRefObject,  IOperatorProxy, IProcessingNodesProxy
     {
         //TODO:where does the routing and the and process semantics cames in??? probably in
 
@@ -155,6 +156,7 @@ namespace Operator
             {
                 lock (this)
                 {
+                    Console.WriteLine(tuple.Tuple[0]);
                     this.waitingTuples.Add(tuple);
                     Monitor.PulseAll(this);
                     break;
@@ -178,9 +180,11 @@ namespace Operator
         }
 
         //TODO: routing and semmantics shoud apear here i think
-        public void SendTuples()
+        public void SendTuple(OperatorTuple tuple)
         {
-            throw new NotImplementedException();
+            IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), "tcp://localhost:9000/OperatorService");
+
+            opServer.ReceiveTuple(tuple);
         }
 
 
