@@ -28,4 +28,21 @@ namespace PuppetMaster
             }
         }
     }
+
+    public static class ListExtensionMethods
+    {
+        /// <summary>
+        /// A Pythonic "Add" method.
+        /// </summary>
+        /// <typeparam name="Ttype"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="parameters"></param>
+        public static void Add<Ttype>(this List<Ttype> list, params Ttype[] parameters)
+        {
+            foreach(var p in parameters)
+            {
+                list.Add(p);
+            }
+        }
+    }
 }
