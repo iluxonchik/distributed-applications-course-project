@@ -143,7 +143,7 @@ namespace PuppetMaster.Tests
 
             // Build expected operator
             List<OperatorInput> expInputs = new List<OperatorInput>();
-            expInputs.Add(new OperatorInput() { Name = "1992", Type = InputType.File });
+            expInputs.Add(new OperatorInput() { Name = "1992", Type = InputType.Operator });
 
             List<string> expAddrs = new List<string>();
             expAddrs.Add("tcp://1.2.3.4:11000/protege-of-the-d-r-e");

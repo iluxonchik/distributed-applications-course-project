@@ -226,13 +226,8 @@ namespace PuppetMaster
             {
                 OperatorInput opInput = new OperatorInput();
                 opInput.Name =  c.Value;
-                opInput.Type = InputType.File; // TODO: input type is not always a File
-                                               /* Possible solution to TODO above:
-                                                * One of the solution would be store all of the operator IDs in a list during parsing
-                                                * and then at the end run through the Config.Operators and for each Cofig.Operator.OperatorSpec.Name
-                                                * check if that name is a previously known Operator ID, if so, change its type to InputType.Operator,
-                                                * i.e. if its name is in the stored list, mark it as InputType.Operator.
-                                                */
+                // lab teacher said that we can assume that an input op is a file if it contains a "."
+                opInput.Type = opInput.Name.Contains(".") ? InputType.File : InputType.Operator;
                 opInputList.Add(opInput);
             }
             return opInputList;
