@@ -221,5 +221,14 @@ namespace PuppetMaster.Tests
 
             
         }
+
+        [Test]
+        public void TestOperatorCount()
+        {
+            ConfigParser cp = new ConfigParser(PROVIDED_CONF);
+            Config conf = cp.Parse();
+            Assert.That(conf.Operators, Is.Not.Null.Or.Empty, "Operator config list is null or empty");
+            Assert.That(Is.Equals(conf.Operators.Count, 4), string.Format("Expected: 4, Actual: {0}", conf.Operators.Count));
+        }
     }
 }
