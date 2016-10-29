@@ -169,4 +169,57 @@ namespace PuppetMaster.Tests
 
 
     }
+
+    [TestFixture]
+    class PuppetMasterProvidedConfigTest : PuppetMasterBaseTestFixture
+    {
+        private StreamReader provided_config;
+        private readonly string PROVIDED_CONF;
+
+        public PuppetMasterProvidedConfigTest()
+        {
+            PROVIDED_CONF = RESOURCES_DIR + "provided_config.config";
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            /* 
+             * Quick Hack: uncomment line below to make break points 
+             * (select your VisualStudio instance when a window pops up). 
+             */
+
+            //System.Diagnostics.Debugger.Launch();
+            provided_config = new StreamReader(PROVIDED_CONF);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            // Empty
+        }
+
+        [Test]
+        public void TestLoggingLevelParsing()
+        {
+            ConfigParser cp = new ConfigParser(PROVIDED_CONF);
+            Config conf = cp.Parse();
+
+            Assert.That(Is.Equals(conf.LoggingLevel, LoggingLevel.Light));
+        }
+
+        /// <summary>
+        /// Test all possible combinations of Semantics values.
+        /// </summary>
+        [Test]
+        public void TestSemanticsParsing()
+        {
+            ConfigParser cp = new ConfigParser(PROVIDED_CONF);
+            Config conf = cp.Parse();
+
+            Assert.That(Is.Equals(conf.Semantics, Semantics.AtMostOnce));
+
+            
+        }
+    }
 }
