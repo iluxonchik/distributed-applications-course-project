@@ -204,6 +204,7 @@ namespace PuppetMaster.Tests
             // Empty
         }
 
+        #region ProvidedConfig Tests
         [Test]
         public void TestLoggingLevelParsing()
         {
@@ -254,6 +255,9 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Hashing, Arg = 1 };
 
+            List<OutputOperator> expOutput = new List<OutputOperator>();
+            expOutput.Add(new OutputOperator() { Name = "OP4", Addresses = new List<string>() { "tcp://1.2.3.10:11000/op" } });
+
             OperatorSpec expected = new OperatorSpec()
             {
                 Id = "OP3",
@@ -262,6 +266,7 @@ namespace PuppetMaster.Tests
                 Addrs = expAddrs,
                 Args = expArgs,
                 Routing = expRouting,
+                OutputOperators = expOutput,
                 Type = OperatorType.Uniq
             };
 
@@ -286,6 +291,9 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Hashing, Arg = 1 };
 
+            List<OutputOperator> expOutput = new List<OutputOperator>();
+            expOutput.Add(new OutputOperator() { Name = "OP2", Addresses = new List<string> { "tcp://1.2.3.6:11000/op", "tcp://1.2.3.6:11001/op" } });
+
             OperatorSpec expected = new OperatorSpec()
             {
                 Id = "OP1",
@@ -294,6 +302,7 @@ namespace PuppetMaster.Tests
                 Addrs = expAddrs,
                 Args = expArgs,
                 Routing = expRouting,
+                OutputOperators = expOutput,
                 Type = OperatorType.Filter
             };
 
@@ -318,6 +327,11 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Random};
 
+
+
+            List<OutputOperator> expOutput = new List<OutputOperator>();
+            expOutput.Add(new OutputOperator() { Name = "OP3", Addresses = new List<string> { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" } });
+
             OperatorSpec expected = new OperatorSpec()
             {
                 Id = "OP2",
@@ -326,6 +340,7 @@ namespace PuppetMaster.Tests
                 Addrs = expAddrs,
                 Args = expArgs,
                 Routing = expRouting,
+                OutputOperators = expOutput,
                 Type = OperatorType.Custom
             };
 
@@ -361,6 +376,20 @@ namespace PuppetMaster.Tests
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
+        }
+        #endregion
+
+        #region ComplementedConfig Tests
+        /// <summary>
+        /// Make sure that the extra operator in complement cofig is included in te count.
+        /// </summary>
+        [Test]
+        public void TestComplementedConfigOperatorCount()
+        {
+            ConfigParser cp = new ConfigParser(COMPLEMENTED_CONF);
+            Config conf = cp.Parse();
+            Assert.That(conf.Operators, Is.Not.Null.Or.Empty, "Operator config list is null or empty");
+            Assert.That(Is.Equals(conf.Operators.Count, 5), string.Format("Expected: 5, Actual: {0}", conf.Operators.Count));
         }
 
         /// <summary>
@@ -399,6 +428,89 @@ namespace PuppetMaster.Tests
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
         }
+
+        /// <summary>
+        /// This test uses the provided config with an additional, more complex DUP input
+        /// operator and test that OP1 has it in its OutputOperator property.
+        /// </summary>
+        [Test]
+        public void TestOP1OutputsToDupOperator()
+        {
+            ConfigParser cp = new ConfigParser(COMPLEMENTED_CONF);
+            Config conf = cp.Parse();
+
+            // Build expected operator
+            List<OperatorInput> expInputs = new List<OperatorInput>();
+            expInputs.Add(new OperatorInput() { Name = "tweeters.data", Type = InputType.File });
+
+            List<string> expAddrs = new List<string>();
+            expAddrs.AddRange(new string[] { "tcp://1.2.3.4:11000/op", "tcp://1.2.3.5:11000/op" });
+
+            List<string> expArgs = new List<string>();
+            expArgs.Add("3", "=", @"""www.tecnico.ulisboa.pt""");
+
+            OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Hashing, Arg = 1 };
+
+            List<OutputOperator> expOutput = new List<OutputOperator>();
+            expOutput.Add(new OutputOperator() { Name = "OP2", Addresses = new List<string> { "tcp://1.2.3.6:11000/op", "tcp://1.2.3.6:11001/op" } });
+            expOutput.Add(new OutputOperator() { Name = "OP5", Addresses = new List<string> { "tcp://1.9.9.2:1410/ninety-ninety-two", "tcp://2.0.0.5:1801/the-documentary" } });
+
+            OperatorSpec expected = new OperatorSpec()
+            {
+                Id = "OP1",
+                Inputs = expInputs,
+                ReplicationFactor = 2,
+                Addrs = expAddrs,
+                Args = expArgs,
+                Routing = expRouting,
+                OutputOperators = expOutput,
+                Type = OperatorType.Filter
+            };
+
+            Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
+        }
+
+        /// <summary>
+        /// This test uses the provided config with an additional, more complex DUP input
+        /// operator and test that OP2 has it in its OutputOperator property.
+        /// </summary>
+        [Test]
+        public void TestOP2OutputsToDupOperator()
+        {
+            ConfigParser cp = new ConfigParser(COMPLEMENTED_CONF);
+            Config conf = cp.Parse();
+
+            // Build expected operator
+            List<OperatorInput> expInputs = new List<OperatorInput>();
+            expInputs.Add(new OperatorInput() { Name = "OP1", Type = InputType.Operator, Addresses = new List<string> { "tcp://1.2.3.4:11000/op", "tcp://1.2.3.5:11000/op" } });
+
+            List<string> expAddrs = new List<string>();
+            expAddrs.AddRange(new string[] { "tcp://1.2.3.6:11000/op", "tcp://1.2.3.6:11001/op" });
+
+            List<string> expArgs = new List<string>();
+            expArgs.Add("mylib.dll", "QueryFollowersFile", "getFollowers");
+
+            OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Random };
+
+            List<OutputOperator> expOutput = new List<OutputOperator>();
+            expOutput.Add(new OutputOperator() { Name = "OP3", Addresses = new List<string> { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" } });
+            expOutput.Add(new OutputOperator() { Name = "OP5", Addresses = new List<string> { "tcp://1.9.9.2:1410/ninety-ninety-two", "tcp://2.0.0.5:1801/the-documentary" } });
+
+            OperatorSpec expected = new OperatorSpec()
+            {
+                Id = "OP2",
+                Inputs = expInputs,
+                ReplicationFactor = 2,
+                Addrs = expAddrs,
+                Args = expArgs,
+                Routing = expRouting,
+                OutputOperators = expOutput,
+                Type = OperatorType.Custom
+            };
+
+            Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
+        }
+        #endregion
     }
 
 }
