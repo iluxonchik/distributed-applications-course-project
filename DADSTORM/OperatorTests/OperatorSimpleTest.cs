@@ -8,6 +8,7 @@ using NUnit.Framework.Constraints;
 using Operator;
 using OperatorProxys;
 using System.Threading;
+using System.IO;
 
 namespace Operator.Tests
 {
@@ -19,7 +20,7 @@ namespace Operator.Tests
         /// simple variables to be used in the test
         /// </summary>
         private static readonly OperatorTuple tuple1 = new OperatorTuple(new List<string> { "test1", "test2", "test3", "Ola", "ola" });
-        private static readonly OperatorTuple tuple2 = new OperatorTuple(new List<string> { "test4", "test5", "test6", "test6" });    
+        private static readonly OperatorTuple tuple2 = new OperatorTuple(new List<string> { "test4", "test5", "test6", "test6" });
 
         private static readonly OperatorTuple tuple3 = new OperatorTuple(new List<string> { "test1", "test2", "test3" });
 
@@ -30,6 +31,11 @@ namespace Operator.Tests
         private static readonly string dllName = TestContext.CurrentContext.TestDirectory + "../../../resources/TestDll.dll";
         private static readonly string className = "TestDll.ChangeTuple";
         private static readonly string methodName = "DuplicateTuple";
+        private static readonly string followersFile = TestContext.CurrentContext.TestDirectory + "../../../resources/followers.dat";
+        private static readonly string tweetersFile = TestContext.CurrentContext.TestDirectory + "../../../resources/tweeters.dat";
+        private static readonly string followersFile1 = TestContext.CurrentContext.TestDirectory + "../../../resources/followers1.dat";
+        private static readonly string tweetersFile1 = TestContext.CurrentContext.TestDirectory + "../../../resources/tweeters1.dat";
+
 
         [SetUp]
         public void SetUp()
@@ -100,7 +106,7 @@ namespace Operator.Tests
         [Test]
         public void TestCustomOperator()
         {
-            
+
             Operator.CustomOperator co = new CustomOperator(dllName, className, methodName);
 
             /* the tuple which content should be result */
@@ -130,7 +136,7 @@ namespace Operator.Tests
             Assert.That(Is.Equals(dop.waitingTuples.Count, 3));
             Assert.That(Is.Equals(dop.readyTuples.Count, 0));
 
-           // Thread.Sleep(100);
+            // Thread.Sleep(100);
             dop.Start();
 
             //precisamos de garantir que as thread processão os tuplos
@@ -147,7 +153,7 @@ namespace Operator.Tests
             dop.ReceiveTuple(tuple1);
             dop.ReceiveTuple(tuple2);
             dop.ReceiveTuple(tuple3);
-            
+
             //precisamos de garantir que as thread processão os tuplos
             Thread.Sleep(100);
             Assert.That(Is.Equals(dop.waitingTuples.Count, 0));
@@ -174,6 +180,55 @@ namespace Operator.Tests
             Assert.That(Is.Equals(dop.waitingTuples.Count, 0));
             Assert.That(Is.Equals(dop.readyTuples.Count, 3));
         }
+
+        [Test]
+        public void TestReadTuplesFile()
+        {
+            Operator.DupOperator dop = new DupOperator();
+            FileInfo f = new FileInfo(tweetersFile1);
+            Assert.That(Is.Equals(f.Exists, true));
+
+            List<OperatorTuple> tuples = dop.ReadTuplesFromFile(f);
+            Assert.That(Is.Equals(tuples.Count, 1));
+            Assert.That(Is.Equals(tuples[0].Tuple[0], "1"));
+            Assert.That(Is.Equals(tuples[0].Tuple[1], "user3"));
+            Assert.That(Is.Equals(tuples[0].Tuple[2], "www.tecnico.ulisboa.pt"));
+
+            //---------------------------------------//
+             dop = new DupOperator();
+             f = new FileInfo(tweetersFile);
+            Assert.That(Is.Equals(f.Exists, true));
+
+            tuples = dop.ReadTuplesFromFile(f);
+            Assert.That(Is.Equals(tuples.Count, 12));
+            Assert.That(Is.Equals(tuples[11].Tuple[0], "12"));
+            Assert.That(Is.Equals(tuples[11].Tuple[1], "user5"));
+            Assert.That(Is.Equals(tuples[11].Tuple[2], "www.tecnico.ulisboa.pt"));
+
+            //------------------------------------------------------//
+            dop = new DupOperator();
+            f = new FileInfo(followersFile1);
+            Assert.That(Is.Equals(f.Exists, true));
+
+            tuples = dop.ReadTuplesFromFile(f);
+            Assert.That(Is.Equals(tuples.Count, 1));
+            Assert.That(Is.Equals(tuples[0].Tuple[0], "user2"));
+            Assert.That(Is.Equals(tuples[0].Tuple[1], "user10"));
+
+            //---------------------------//
+            dop = new DupOperator();
+            f = new FileInfo(followersFile);
+            Assert.That(Is.Equals(f.Exists, true));
+
+            tuples = dop.ReadTuplesFromFile(f);
+            Assert.That(Is.Equals(tuples.Count, 13));
+            Assert.That(Is.Equals(tuples[12].Tuple[0], "user11"));
+            Assert.That(Is.Equals(tuples[12].Tuple[1], "user6"));
+            Assert.That(Is.Equals(tuples[12].Tuple[2], "user5"));
+            Assert.That(Is.Equals(tuples[12].Tuple[3], "user10"));
+           
+        }
     }
+
 
 }
