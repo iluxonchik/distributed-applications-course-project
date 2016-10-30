@@ -49,6 +49,7 @@
     <Compile Include="ConfigTypes.cs" />
     <Compile Include="Exceptions\UnknownOperatorRoutingException.cs" />
     <Compile Include="Exceptions\UnknownOperatorTypeException.cs" />
+    <Compile Include="ExtenstionMethods.cs" />
     <Compile Include="OperatorInput.cs" />
     <Compile Include="OperatorRouting.cs" />
     <Compile Include="OperatorSpec.cs" />

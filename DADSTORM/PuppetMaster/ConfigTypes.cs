@@ -27,7 +27,7 @@ namespace PuppetMaster
 
     public enum OperatorType
     {
-        Uniq, Count, Dup, Filer, Custom
+        Uniq, Count, Dup, Filter, Custom
     }
 
     public enum InputType

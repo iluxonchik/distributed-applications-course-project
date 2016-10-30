@@ -1,6 +1,7 @@
 ﻿using PuppetMaster.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,10 +18,10 @@ namespace PuppetMaster
         private readonly StreamReader confFile;
         private const string LOGGING_LVL_REGEX = @"^LoggingLevel (full|light)\s*?\r?$";
         private const string SEMANTICS_REGEX = @"^Semantics (at-least-once|at-most-once|exactly-once)\s*?\r?$";
-        private const string OPERATOR_REGEX = @"^(?<operator_id>\w+) (input ops) (?<input_ops>(?<input_op>(\w+\.?){1,2})|((?<input_op>(\w+\.?){1,2}), ?)+(?<input_op>(\w+\.?){1,2}))+(\r?\n| )" + // you'll have to trust that this works 😂😂😂
+        private const string OPERATOR_REGEX = @"^(?<operator_id>\w+) (input ops) (?<input_ops>(?<input_op>(\w+\.?){1,2})|((?<input_op>(\w+\.?){1,2}), ?)+(?<input_op>(\w+\.?){1,2})+)(\r?\n| )" + // you'll have to trust that this works 😂😂😂
                                               @"(rep fact) (?<rep_fact>\d+) (routing) (?<routing>(primary|random|hashing\(\d+\)))(\r?\n| )" +
-                                              @"(address) (?<address_list>(?<address>tcp:\/\/\d\.\d\.\d\.\d\:(\d+)\/[\w-]+),? ?)+(\r?\n| )" + // NOTE: accepts "," at the end
-                                              @"(operator spec) (?<op_spec>(?<op_uniq>UNIQ (?<op_uniq_field>\d+))|(?<op_count>COUNT)|(?<op_dup>DUP)|(?<op_filter>FILTER (?<op_filter_field>\d+), ?(?<op_filter_cond>(>|<|=)), ?(?<op_filter_value>""?[a-zA-Z0-10\.\d]+""?))|(?<op_custom>CUSTOM (?<op_custom_dll>\w+\.dll), (?<op_custom_class>\w+), (?<op_custom_method>\w+)))\r?\n?";
+                                              @"(address) (?<address_list>(?<address>tcp:\/\/\d+\.\d+\.\d+\.\d+\:(\d+)\/[\w-]+),? ?)+(\r?\n| )" + // NOTE: accepts "," at the end
+                                              @"(operator spec) (?<op_spec>(?<op_uniq>UNIQ (?<op_uniq_field>\d+))|(?<op_count>COUNT)|(?<op_dup>DUP)|(?<op_filter>FILTER (?<op_filter_field>\d+), ?(?<op_filter_cond>(>|<|=)), ?(?<op_filter_value>""?[a-zA-Z0-10\.\d]+""?))|(?<op_custom>CUSTOM (?<op_custom_dll>\w+\.dll), ?(?<op_custom_class>\w+), ?(?<op_custom_method>\w+)))\r?\n?";
         private readonly Action<string, Config>[] regexParsers;
         private readonly string[] REGEX_LIST = { LOGGING_LVL_REGEX };
 
@@ -103,6 +104,7 @@ namespace PuppetMaster
         {
             MatchCollection mc = Regex.Matches(fileContent, OPERATOR_REGEX, RegexOptions.Multiline);
             List<OperatorSpec> operators = new List<OperatorSpec>();
+            Dictionary<string, List<string>> opToAddrDict = new Dictionary<string, List<string>>();
             foreach (Match m in mc)
             {
                 OperatorSpec os = new OperatorSpec();
@@ -115,6 +117,23 @@ namespace PuppetMaster
                 os.Args = ParseOperatorArgList(m, os.Type); // yeah, dependency from ParseOperatorType, but simplifies things
                 os.Routing = ParseOperatorRouting(m);
                 operators.Add(os);
+
+                opToAddrDict.Add(os.Id, os.Addrs);
+            }
+
+            List<string> addrs; // used in loop below to store temp values
+            foreach(OperatorSpec op in operators)
+            {
+                foreach(var input in op.Inputs)
+                {
+                    if (input.Type.Equals(InputType.Operator))
+                    {
+                        if ((addrs = opToAddrDict.Get(input.Name)) != null)
+                        { 
+                            input.Addresses.AddRange(opToAddrDict[input.Name]);
+                        }
+                    }
+                }
             }
             conf.Operators = operators;
         }
@@ -133,7 +152,7 @@ namespace PuppetMaster
 
             if (!String.IsNullOrEmpty(m.Groups["op_filter"].Value))
             {
-                return OperatorType.Filer;
+                return OperatorType.Filter;
             }
 
             if (!String.IsNullOrEmpty(m.Groups["op_custom"].Value))
@@ -198,7 +217,7 @@ namespace PuppetMaster
                 argList.Add(m.Groups["op_custom_class"].Value);
                 argList.Add(m.Groups["op_custom_method"].Value);
             }
-            else if (opType == OperatorType.Filer)
+            else if (opType == OperatorType.Filter)
             {
                 argList.Add(m.Groups["op_filter_field"].Value);
                 argList.Add(m.Groups["op_filter_cond"].Value);
@@ -226,13 +245,8 @@ namespace PuppetMaster
             {
                 OperatorInput opInput = new OperatorInput();
                 opInput.Name =  c.Value;
-                opInput.Type = InputType.File; // TODO: input type is not always a File
-                                               /* Possible solution to TODO above:
-                                                * One of the solution would be store all of the operator IDs in a list during parsing
-                                                * and then at the end run through the Config.Operators and for each Cofig.Operator.OperatorSpec.Name
-                                                * check if that name is a previously known Operator ID, if so, change its type to InputType.Operator,
-                                                * i.e. if its name is in the stored list, mark it as InputType.Operator.
-                                                */
+                // lab teacher said that we can assume that an input op is a file if it contains a "."
+                opInput.Type = opInput.Name.Contains(".") ? InputType.File : InputType.Operator;
                 opInputList.Add(opInput);
             }
             return opInputList;
