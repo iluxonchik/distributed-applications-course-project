@@ -169,15 +169,21 @@ namespace PuppetMaster.Tests
 
     }
 
+    /// <summary>
+    /// Test the providec config file, along with an additon to that, which includes
+    /// testing the DUP operator as well as multiple input operators.
+    /// </summary>
     [TestFixture]
     class PuppetMasterProvidedConfigTest : PuppetMasterBaseTestFixture
     {
         private StreamReader provided_config;
         private readonly string PROVIDED_CONF;
+        private readonly string COMPLEMENTED_CONF;
 
         public PuppetMasterProvidedConfigTest()
         {
             PROVIDED_CONF = RESOURCES_DIR + "provided_config.config";
+            COMPLEMENTED_CONF = RESOURCES_DIR + "complemented_provided_config.config";
         }
 
         [SetUp]
@@ -352,6 +358,43 @@ namespace PuppetMaster.Tests
                 Addrs = expAddrs,
                 Routing = expRouting,
                 Type = OperatorType.Count
+            };
+
+            Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
+        }
+
+        /// <summary>
+        /// This test uses the provided config with an additional, more complex DUP input
+        /// operator.
+        /// </summary>
+        [Test]
+        public void TestDupOperator()
+        {
+            ConfigParser cp = new ConfigParser(COMPLEMENTED_CONF);
+            Config conf = cp.Parse();
+
+            // Build expected operator
+            List<OperatorInput> expInputs = new List<OperatorInput>();
+            expInputs.Add(new OperatorInput() { Name = "OP1", Type = InputType.Operator, Addresses = new List<string> { "tcp://1.2.3.4:11000/op", "tcp://1.2.3.5:11000/op" } });
+            expInputs.Add(new OperatorInput() { Name = "OP2", Type = InputType.Operator, Addresses = new List<string> { "tcp://1.2.3.6:11000/op", "tcp://1.2.3.6:11001/op" } });
+            expInputs.Add(new OperatorInput() { Name = "Dr.Dre", Type = InputType.File });
+
+            List<string> expAddrs = new List<string>();
+            expAddrs.Add("tcp://1.9.9.2:1410/ninety-ninety-two", "tcp://2.0.0.5:1801/the-documentary");
+
+            List <string> expArgs = new List<string>();
+
+            OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Primary };
+
+            OperatorSpec expected = new OperatorSpec()
+            {
+                Id = "OP5",
+                Inputs = expInputs,
+                ReplicationFactor = 2,
+                Addrs = expAddrs,
+                Args = expArgs,
+                Routing = expRouting,
+                Type = OperatorType.Dup
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
