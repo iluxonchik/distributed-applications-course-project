@@ -105,6 +105,7 @@ namespace PuppetMaster
             MatchCollection mc = Regex.Matches(fileContent, OPERATOR_REGEX, RegexOptions.Multiline);
             List<OperatorSpec> operators = new List<OperatorSpec>();
             Dictionary<string, List<string>> opToAddrDict = new Dictionary<string, List<string>>();
+            Dictionary<string, OperatorSpec> opnameToOpSpec= new Dictionary<string, OperatorSpec>();
             foreach (Match m in mc)
             {
                 OperatorSpec os = new OperatorSpec();
@@ -119,9 +120,11 @@ namespace PuppetMaster
                 operators.Add(os);
 
                 opToAddrDict.Add(os.Id, os.Addrs);
+                opnameToOpSpec.Add(os.Id, os);
             }
 
             List<string> addrs; // used in loop below to store temp values
+            OperatorSpec opspec; // used in loop below to store temp values
             foreach(OperatorSpec op in operators)
             {
                 foreach(var input in op.Inputs)
@@ -131,6 +134,11 @@ namespace PuppetMaster
                         if ((addrs = opToAddrDict.Get(input.Name)) != null)
                         { 
                             input.Addresses.AddRange(opToAddrDict[input.Name]);
+                        }
+
+                        if ((opspec = opnameToOpSpec.Get(input.Name)) != null)
+                        {
+                            opspec.OutputOperators.Add(new OutputOperator(op));
                         }
                     }
                 }

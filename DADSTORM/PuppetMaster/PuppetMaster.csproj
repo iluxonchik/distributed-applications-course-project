@@ -53,6 +53,7 @@
     <Compile Include="OperatorInput.cs" />
     <Compile Include="OperatorRouting.cs" />
     <Compile Include="OperatorSpec.cs" />
+    <Compile Include="OutputOperator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
