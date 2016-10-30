@@ -26,8 +26,9 @@ namespace PuppetMaster
         public OperatorType Type { get; set; }
         public int ReplicationFactor { get; set; }
         public OperatorRouting Routing;
-        public List<string> Addrs;
-        public List<string> Args { get; set; }
+        public List<string> Addrs = new List<string>();
+        public List<string> Args { get; set; } = new List<string>();
+        public List<OutputOperator> OutputOperators { get; set; } = new List<OutputOperator>();
 
         public OperatorSpec()
         {
@@ -36,19 +37,7 @@ namespace PuppetMaster
 
         public void AddArg(string arg)
         {
-            if (Args == null)
-            {
-                Args = new List<string>();
-            }
             Args.Add(arg);
-        }
-
-        public void AddAddr(string addr)
-        {
-            if (Addrs == null)
-            {
-                Addrs = new List<string>();
-            }
         }
 
         public override string ToString()
