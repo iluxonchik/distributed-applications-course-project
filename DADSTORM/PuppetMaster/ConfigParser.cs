@@ -1,6 +1,7 @@
 ﻿using PuppetMaster.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -103,6 +104,7 @@ namespace PuppetMaster
         {
             MatchCollection mc = Regex.Matches(fileContent, OPERATOR_REGEX, RegexOptions.Multiline);
             List<OperatorSpec> operators = new List<OperatorSpec>();
+            Dictionary<string, List<string>> opToAddrDict = new Dictionary<string, List<string>>();
             foreach (Match m in mc)
             {
                 OperatorSpec os = new OperatorSpec();
@@ -115,6 +117,23 @@ namespace PuppetMaster
                 os.Args = ParseOperatorArgList(m, os.Type); // yeah, dependency from ParseOperatorType, but simplifies things
                 os.Routing = ParseOperatorRouting(m);
                 operators.Add(os);
+
+                opToAddrDict.Add(os.Id, os.Addrs);
+            }
+
+            List<string> addrs; // used in loop below to store temp values
+            foreach(OperatorSpec op in operators)
+            {
+                foreach(var input in op.Inputs)
+                {
+                    if (input.Type.Equals(InputType.Operator))
+                    {
+                        if ((addrs = opToAddrDict.Get(input.Name)) != null)
+                        { 
+                            input.Addresses.AddRange(opToAddrDict[input.Name]);
+                        }
+                    }
+                }
             }
             conf.Operators = operators;
         }
@@ -133,7 +152,7 @@ namespace PuppetMaster
 
             if (!String.IsNullOrEmpty(m.Groups["op_filter"].Value))
             {
-                return OperatorType.Filer;
+                return OperatorType.Filter;
             }
 
             if (!String.IsNullOrEmpty(m.Groups["op_custom"].Value))
@@ -198,7 +217,7 @@ namespace PuppetMaster
                 argList.Add(m.Groups["op_custom_class"].Value);
                 argList.Add(m.Groups["op_custom_method"].Value);
             }
-            else if (opType == OperatorType.Filer)
+            else if (opType == OperatorType.Filter)
             {
                 argList.Add(m.Groups["op_filter_field"].Value);
                 argList.Add(m.Groups["op_filter_cond"].Value);
