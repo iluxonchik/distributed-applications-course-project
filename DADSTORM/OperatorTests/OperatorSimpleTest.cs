@@ -7,6 +7,7 @@ using NUnit.Framework;
 using NUnit.Framework.Constraints;
 using Operator;
 using OperatorProxys;
+using System.Threading;
 
 namespace Operator.Tests
 {
@@ -116,6 +117,62 @@ namespace Operator.Tests
             {
                 Assert.That(Is.Equals(res.Tuple[i], tupleCompare[i]));
             }
+        }
+
+        [Test]
+        public void TestFlowOfTuples()
+        {
+            Operator.DupOperator dop = new DupOperator();
+
+            dop.ReceiveTuple(tuple1);
+            dop.ReceiveTuple(tuple2);
+            dop.ReceiveTuple(tuple3);
+            Assert.That(Is.Equals(dop.waitingTuples.Count, 3));
+            Assert.That(Is.Equals(dop.readyTuples.Count, 0));
+
+           // Thread.Sleep(100);
+            dop.Start();
+
+            //precisamos de garantir que as thread processão os tuplos
+            Thread.Sleep(100);
+
+            Assert.That(Is.Equals(dop.waitingTuples.Count, 0));
+            Assert.That(Is.Equals(dop.readyTuples.Count, 3));
+
+
+
+            dop = new DupOperator();
+
+            dop.Start();
+            dop.ReceiveTuple(tuple1);
+            dop.ReceiveTuple(tuple2);
+            dop.ReceiveTuple(tuple3);
+            
+            //precisamos de garantir que as thread processão os tuplos
+            Thread.Sleep(100);
+            Assert.That(Is.Equals(dop.waitingTuples.Count, 0));
+            Assert.That(Is.Equals(dop.readyTuples.Count, 3));
+
+        }
+        [Test]
+        public void TestFreezeUnfreeze()
+        {
+            Operator.DupOperator dop = new DupOperator();
+            dop.Start();
+            dop.Freeze();
+            dop.ReceiveTuple(tuple1);
+            dop.ReceiveTuple(tuple2);
+            dop.ReceiveTuple(tuple3);
+            //precisamos de garantir que as thread processão os tuplos
+            Thread.Sleep(100);
+            Assert.That(Is.Equals(dop.waitingTuples.Count, 3));
+            Assert.That(Is.Equals(dop.readyTuples.Count, 0));
+
+            dop.UnFreeze();
+            //precisamos de garantir que as thread processão os tuplos
+            Thread.Sleep(100);
+            Assert.That(Is.Equals(dop.waitingTuples.Count, 0));
+            Assert.That(Is.Equals(dop.readyTuples.Count, 3));
         }
     }
 

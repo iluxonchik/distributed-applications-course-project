@@ -1,5 +1,8 @@
-﻿namespace PuppetMaster
+﻿using System;
+
+namespace PuppetMaster
 {
+    [Serializable]
     public class OperatorRouting
     {
         public RoutingType Type { get; set; }

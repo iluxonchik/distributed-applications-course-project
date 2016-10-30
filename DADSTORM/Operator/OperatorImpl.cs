@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using OperatorProxys;
 using System.Diagnostics;
 using System.Threading;
+using PuppetMaster;
 
 namespace Operator
 {
@@ -36,22 +37,33 @@ namespace Operator
         /// new tuples are added to the tail
         /// to remove oldest tuple remove from the head
         /// </summary>
-        private List<OperatorTuple> waitingTuples;
+        public List<OperatorTuple> waitingTuples { get; private set; }
 
         /// <summary>
         /// list of tuples already processed and ready to be outputed
         /// </summary<>
-        private List<OperatorTuple> readyTuples;
+        public List<OperatorTuple> readyTuples { get; private set; }
 
         public const int DEFAULT_NUM_WORKERS = 10;
-
-
+        public OperatorSpec Spec { get; private set; }
+        public OperatorImpl(OperatorSpec spec)
+        {
+            this.Spec = spec;
+            InitOp();
+        }
         public OperatorImpl()
+        {
+            //empty because of unit tests, we did not had acess to oP spec
+            InitOp();
+        }
+
+        private void InitOp()
         {
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
             this.waitingTuples = new List<OperatorTuple>();
             this.readyTuples = new List<OperatorTuple>();
+            initWorkers();
 
         }
 
@@ -59,6 +71,8 @@ namespace Operator
         // Start all the workers at once
         private void initWorkers()
         {
+            this.workers = new Thread[num_workers];
+
             for (int i = 0; i < num_workers; i++)
             {
                 ThreadStart st = new ThreadStart(this.consume);
@@ -156,7 +170,7 @@ namespace Operator
             {
                 lock (this)
                 {
-                    Console.WriteLine(tuple.Tuple[0]);
+                    //Console.WriteLine(tuple.Tuple[0]);
                     this.waitingTuples.Add(tuple);
                     Monitor.PulseAll(this);
                     break;

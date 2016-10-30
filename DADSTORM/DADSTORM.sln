@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreation", "ProcessC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreationProxy", "ProcessCreationProxy\ProcessCreationProxy.csproj", "{E8788CDC-7EAA-4FDA-839F-041C25ECE1B9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreation.Tests", "ProcessCreation.Tests\ProcessCreation.Tests.csproj", "{3D4A191C-B76A-42A9-AD75-392139F70C97}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,10 @@ Global
 		{E8788CDC-7EAA-4FDA-839F-041C25ECE1B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8788CDC-7EAA-4FDA-839F-041C25ECE1B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8788CDC-7EAA-4FDA-839F-041C25ECE1B9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D4A191C-B76A-42A9-AD75-392139F70C97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4A191C-B76A-42A9-AD75-392139F70C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4A191C-B76A-42A9-AD75-392139F70C97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4A191C-B76A-42A9-AD75-392139F70C97}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -88,5 +94,6 @@ Global
 		{A5806A00-BECD-43E7-85FB-EBA7E4C89392} = {A6C015AB-E12E-42AB-B216-DDB84E9BE43A}
 		{18890597-F7BF-47EC-BAF1-5849D327C0CA} = {1F8CFF2B-75ED-4877-931F-49A8566232C7}
 		{E8788CDC-7EAA-4FDA-839F-041C25ECE1B9} = {1F8CFF2B-75ED-4877-931F-49A8566232C7}
+		{3D4A191C-B76A-42A9-AD75-392139F70C97} = {A6C015AB-E12E-42AB-B216-DDB84E9BE43A}
 	EndGlobalSection
 EndGlobal

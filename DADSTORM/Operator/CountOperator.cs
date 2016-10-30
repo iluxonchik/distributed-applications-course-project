@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OperatorProxys;
+using PuppetMaster;
 
 namespace Operator
 {
@@ -13,6 +14,11 @@ namespace Operator
         /// save the state of the counter
         /// </summary>
         public int countResult { get; set; }
+
+        public CountOperator(OperatorSpec spec) : base(spec)
+        {
+            countResult = 0;
+        }
 
         public CountOperator() : base()
         {

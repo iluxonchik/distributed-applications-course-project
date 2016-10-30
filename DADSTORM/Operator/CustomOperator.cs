@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using OperatorProxys;
+using PuppetMaster;
 
 namespace Operator
 {
@@ -26,7 +27,12 @@ namespace Operator
         /// </summary>
         private string method_;
 
-
+        public CustomOperator(OperatorSpec spec,string dll_d, string class_c, string method_m) : base(spec)
+        {
+            dll_ = dll_d;
+            class_ = class_c;
+            method_ = method_m;
+        }
         public CustomOperator(string dll_d, string class_c, string method_m) : base()
         {
             dll_ = dll_d;

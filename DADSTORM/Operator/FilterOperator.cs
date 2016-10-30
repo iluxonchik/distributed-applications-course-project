@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OperatorProxys;
+using PuppetMaster;
 namespace Operator
 {
     public class FilterOperator : OperatorImpl
@@ -22,7 +23,14 @@ namespace Operator
         /// save the value to be compared
         /// </summary>
         private string compare;
-        
+
+        public FilterOperator(OperatorSpec spec,int id_, string cond_, string compare_) : base(spec)
+        {
+            id = id_;
+            cond = cond_;
+            compare = compare_;
+        }
+
         public FilterOperator(int id_, string cond_, string compare_) : base()
         {
             id = id_;

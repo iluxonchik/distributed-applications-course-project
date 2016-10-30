@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using OperatorProxys;
+using PuppetMaster;
 
 namespace Operator
 {
@@ -15,6 +16,11 @@ namespace Operator
         private int id;
         private ISet<string> uniq;
 
+        public UniqOperator(OperatorSpec spec,int id_) : base(spec)
+        {
+            this.uniq = new HashSet<string>();
+            id = id_;
+        }
         public UniqOperator(int id_) : base()
         {
             this.uniq = new HashSet<string>();

@@ -1,5 +1,8 @@
-﻿namespace PuppetMaster
+﻿using System;
+
+namespace PuppetMaster
 {
+    [Serializable]
     public class OperatorInput
     {
         public string Name;

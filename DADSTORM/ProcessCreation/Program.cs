@@ -15,9 +15,9 @@ namespace ProcessCreation
 {
     public class Program
     {
-        private const int PORT= 1000;
+        private const int PORT= 10000;
         private static string operatorPathExec;
-        private static string DEFAULT_OP_PATH = "/resources/OperatorProgram.exec";
+        private static string DEFAULT_OP_PATH = @"\..\..\resources\Operator.exe";
         private static FileInfo operatorExecFile;
         public static void Main(string[] args)
         {
@@ -40,11 +40,13 @@ namespace ProcessCreation
                 operatorPathExec= Console.ReadLine();
                 operatorExecFile = new FileInfo(operatorPathExec);
             }
-
+            
             TcpChannel channel = new TcpChannel(PORT);
             ChannelServices.RegisterChannel(channel, false);
             ProcessCreationProxyImpl servicos = new ProcessCreationProxyImpl(operatorExecFile);
+            Console.WriteLine("PCS Started");
             RemotingServices.Marshal(servicos, "ProcessCreation", typeof(ProcessCreationProxyImpl));
+            Console.ReadLine();
         }
 
 
