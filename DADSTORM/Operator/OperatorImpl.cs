@@ -208,22 +208,13 @@ namespace Operator
         {
             List<OperatorTuple> tuples = new List<OperatorTuple>();
             System.IO.StreamReader file = new System.IO.StreamReader(filePath.FullName);
-            //TODO: make this better, REGEX???
             //http://stackoverflow.com/questions/25471521/split-string-by-commas-ignoring-any-punctuation-marks-including-in-quotati
             // it does not remove the quote marks but if all url's have quote marks then it does not matter
-            //string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
-
             foreach (var line in File.ReadAllLines(filePath.FullName).Skip(2))
             {
-
-                string[] aux = line.Split(',');
+                string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
                 List<string> tuple = new List<string>(aux);
-                for(int i = 0; i < tuple.Count; i++)
-                {
-                    tuple[i] = tuple[i].Trim();
-                    tuple[i] = tuple[i].Replace("\"", "");
-                }
-                
+               
                 tuples.Add(new OperatorTuple(tuple));
             }
             return tuples;

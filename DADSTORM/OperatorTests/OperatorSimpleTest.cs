@@ -192,7 +192,7 @@ namespace Operator.Tests
             Assert.That(Is.Equals(tuples.Count, 1));
             Assert.That(Is.Equals(tuples[0].Tuple[0], "1"));
             Assert.That(Is.Equals(tuples[0].Tuple[1], "user3"));
-            Assert.That(Is.Equals(tuples[0].Tuple[2], "www.tecnico.ulisboa.pt"));
+            Assert.That(Is.Equals(tuples[0].Tuple[2], "\"www.tecnico.ulisboa.pt\""));
 
             //---------------------------------------//
              dop = new DupOperator();
@@ -203,7 +203,7 @@ namespace Operator.Tests
             Assert.That(Is.Equals(tuples.Count, 12));
             Assert.That(Is.Equals(tuples[11].Tuple[0], "12"));
             Assert.That(Is.Equals(tuples[11].Tuple[1], "user5"));
-            Assert.That(Is.Equals(tuples[11].Tuple[2], "www.tecnico.ulisboa.pt"));
+            Assert.That(Is.Equals(tuples[11].Tuple[2], "\"www.tecnico.ulisboa.pt\""));
 
             //------------------------------------------------------//
             dop = new DupOperator();
