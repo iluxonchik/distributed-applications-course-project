@@ -1,17 +1,19 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PuppetMaster
 {
-    public class OutputOperator
+    [Serializable]
+    public class OperatorOutput
     {
 
-        public OutputOperator(OperatorSpec op)
+        public OperatorOutput(OperatorSpec op)
         {
             Name = op.Id;
             Addresses = op.Addrs;
         }
 
-        public OutputOperator()
+        public OperatorOutput()
         {
             // empty
         }

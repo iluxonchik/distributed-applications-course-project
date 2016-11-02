@@ -20,6 +20,11 @@ namespace Operator
         {
             return tuple;
         }
-        
+
+        public override void Status()
+        {
+            generalStatus();
+            Console.WriteLine("I'm dupping");
+        }
     }
 }

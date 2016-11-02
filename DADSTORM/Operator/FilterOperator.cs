@@ -66,6 +66,11 @@ namespace Operator
             }
             return null;
         }
-        
+
+        public override void Status()
+        {
+            generalStatus();
+            Console.WriteLine("Id: " + id + " | Condition: " + cond + " | Compare: " + compare);
+        }
     }
 }

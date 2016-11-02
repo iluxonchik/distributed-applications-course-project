@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 namespace Operator
 {
     
-    public abstract class OperatorImpl :MarshalByRefObject,  IOperatorProxy, IProcessingNodesProxy
+    public abstract class OperatorImpl : MarshalByRefObject, IOperatorProxy, IProcessingNodesProxy
     {
         //TODO:where does the routing and the and process semantics cames in??? probably in
 
@@ -23,6 +23,8 @@ namespace Operator
         private bool freeze { get; set; }
 
         private int interval { get; set; }
+
+        public int myPort { get; set; }
 
         /// <summary>
         /// collection of thread that will preform the operations
@@ -48,10 +50,28 @@ namespace Operator
 
         public const int DEFAULT_NUM_WORKERS = 10;
         public OperatorSpec Spec { get; private set; }
+
+        private FileInfo logFile;
+        protected readonly string BASE_DIR = Directory.GetCurrentDirectory();
+        protected readonly string RESOURCES_DIR = Directory.GetCurrentDirectory() + "../../../resources/";
+
         public OperatorImpl(OperatorSpec spec)
         {
             this.Spec = spec;
             InitOp();
+
+            // for the logging level full
+            logFile = new FileInfo(RESOURCES_DIR + "/operator/" + this.Spec.Id);
+            if (!logFile.Exists)
+            {
+                if (!Directory.Exists(RESOURCES_DIR))
+                {
+                    Directory.CreateDirectory(RESOURCES_DIR);
+                }
+                var myFile = File.Create(logFile.FullName);
+                myFile.Close();
+            }
+
         }
         public OperatorImpl()
         {
@@ -137,10 +157,16 @@ namespace Operator
                 this.interval = x_ms;
         }
 
-        // Depends of the specific operator ??
-        public void Status()
+        // Depends of the specific operator
+        public abstract void Status();
+        protected void generalStatus()
         {
-            throw new NotImplementedException();
+            Console.WriteLine(this.Spec.Type.ToString() + " | " + this.Spec.Id + " | " + myPort);
+            Console.WriteLine("freeze = " + this.freeze);
+            Console.WriteLine("Sending to:");
+            foreach (string s in Spec.Addrs)
+                Console.WriteLine(s);
+
         }
 
 
@@ -214,7 +240,7 @@ namespace Operator
             {
                 string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
                 List<string> tuple = new List<string>(aux);
-               
+
                 tuples.Add(new OperatorTuple(tuple));
             }
             return tuples;

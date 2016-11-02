@@ -138,7 +138,7 @@ namespace PuppetMaster
 
                         if ((opspec = opnameToOpSpec.Get(input.Name)) != null)
                         {
-                            opspec.OutputOperators.Add(new OutputOperator(op));
+                            opspec.OutputOperators.Add(new OperatorOutput(op));
                         }
                     }
                 }

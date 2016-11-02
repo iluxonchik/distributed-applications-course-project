@@ -8,15 +8,17 @@ using PuppetMaster;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Collections;
 
 namespace Operator
 {
     class Program
     {
-        public const string INVD_ARGS= "Invalid arguments";
+        public const string INVD_ARGS = "Invalid arguments";
         public const string ERR_CONF_FILE = "Problem's reading config file, check again";
 
-        
+        private static IDictionary props = new Hashtable();
+
         public static void Main(string[] args)
         {
             Console.WriteLine("Operator Program started");
@@ -30,12 +32,12 @@ namespace Operator
             {
                 string fileName = args[0];
 
-                Console.WriteLine("path for config file "+fileName);
+                Console.WriteLine("path for config file " + fileName);
                 //Console.ReadLine();
                 FileInfo file = new FileInfo(fileName);
                 if (file.Exists)
                 {
-                   
+
                     try
                     {
                         OperatorSpec opSpec = ReadFromBinaryFile<OperatorSpec>(file.FullName);
@@ -50,40 +52,47 @@ namespace Operator
                                 string dll = opSpec.Args[0];
                                 string class_ = opSpec.Args[1];
                                 string method = opSpec.Args[2];
-                                op = new CustomOperator(opSpec,dll, class_,method);
+                                op = new CustomOperator(opSpec, dll, class_, method);
                                 Console.WriteLine("new Custom Operator");
                                 break;
                             case OperatorType.Dup:
                                 op = new DupOperator(opSpec);
                                 Console.WriteLine("new Dup Operator");
                                 break;
-                            case OperatorType.Filer:
+                            case OperatorType.Filter:
                                 int id = Int32.Parse(opSpec.Args[0]);
                                 string cond = opSpec.Args[1];
                                 string value = opSpec.Args[2];
-                                op = new FilterOperator(opSpec,id, cond,value);
+                                op = new FilterOperator(opSpec, id, cond, value);
                                 Console.WriteLine("new Filter Operator");
                                 break;
                             case OperatorType.Uniq:
-                                 id = Int32.Parse(opSpec.Args[0]);
-                                op = new UniqOperator(opSpec,id);
+                                id = Int32.Parse(opSpec.Args[0]);
+                                op = new UniqOperator(opSpec, id);
                                 Console.WriteLine("new Uniq Operator");
                                 break;
 
                         }
-                        //int port= opSepc.Port;
-                        //TcpChannel channel = new TcpChannel(port);
-                        //ChannelServices.RegisterChannel(channel, false);
-                        //RemotingServices.Marshal(op, "OperatorService", typeof(OperatorImpl));
+
+                        Uri u = new Uri(opSpec.Addrs[0]);
+                        op.myPort = u.Port;
+
+                        props["port"] = u.Port;
+                        props["timeout"] = 1000; // in milliseconds
+                        TcpChannel channel = new TcpChannel(props, null, null);
+                        ChannelServices.RegisterChannel(channel, false);
+                        RemotingServices.Marshal(op, "OperatorService", typeof(OperatorImpl));
+
                     }
                     catch (Exception)
                     {
                         Console.WriteLine(ERR_CONF_FILE);
-                       
-                    }  
+
+                    }
                 }
 
-            }else
+            }
+            else
             {
                 Console.WriteLine(INVD_ARGS);
             }
