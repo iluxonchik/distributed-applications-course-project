@@ -57,7 +57,7 @@ namespace Operator
                                 op = new DupOperator(opSpec);
                                 Console.WriteLine("new Dup Operator");
                                 break;
-                            case OperatorType.Filer:
+                            case OperatorType.Filter:
                                 int id = Int32.Parse(opSpec.Args[0]);
                                 string cond = opSpec.Args[1];
                                 string value = opSpec.Args[2];

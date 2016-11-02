@@ -11,11 +11,11 @@ using PuppetMaster;
 namespace ProcessCreation.Tests
 {
     [TestFixture]
-    public class ProcessCreationTests
+    public class ProcessCreationTests : ProcessCreationBaseTestFixture
     {
 
         //private  string  operatorPathExec = TestContext.CurrentContext.TestDirectory + "../../../resources/Operator.exe";
-        private string operatorPathExec = @"C:\Users\paulo\Documents\GitHub\distributed-applications-course-project\DADSTORM\Operator\bin\Debug\Operator.exe";
+        private string operatorPathExec = BASE_DIR + @"../../../../Operator/bin/Debug/Operator.exe";
         // private string operatorPathExec = @"C:\Users\paulo\Documents\GitHub\distributed-applications-course-project\DADSTORM\ProcessCreation.Tests\resources\Operator.exe";
         [SetUp]
         public void SetUp()
@@ -42,7 +42,6 @@ namespace ProcessCreation.Tests
             spec.Type = PuppetMaster.OperatorType.Count;
             spec.Id = "OP1";
             pcs.CreateOperator(spec);
-
         }
     }
 }
