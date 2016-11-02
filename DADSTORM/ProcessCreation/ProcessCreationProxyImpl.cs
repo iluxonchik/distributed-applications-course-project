@@ -19,20 +19,28 @@ namespace ProcessCreation
         public void CreateOperator(OperatorSpec opSpec)
         {
             Console.WriteLine("CreateOperator colled");
-            ProcessStartInfo start = new ProcessStartInfo(operatorExecFile.FullName);
+            //ProcessStartInfo start = new ProcessStartInfo(operatorExecFile.FullName);
+            Directory.SetCurrentDirectory(operatorExecFile.Directory.FullName);
+           
+            FileInfo opFile = new FileInfo(Directory.GetCurrentDirectory() + "/operator/" + opSpec.Id);
 
-            string opSpecFile = Directory.GetCurrentDirectory() + "/operator" + opSpec.Id;
-            WriteToBinaryFile<OperatorSpec>(opSpecFile, opSpec);
-            start.Arguments = opSpecFile;
-
-            using (Process proc = Process.Start(start))
+            if (!opFile.Exists)
             {
-                //on this point foward all possible comunication beteen should be by remote services,
-                //so we can just clean all process references
+               if(!Directory.Exists(opFile.Directory.FullName))
+                {
+                    Directory.CreateDirectory(opFile.Directory.FullName);
+                }
+                var myFile = File.Create(opFile.FullName);
+                myFile.Close(); 
+               
             }
+
+            WriteToBinaryFile<OperatorSpec>(opFile.FullName, opSpec);
+            Process.Start(operatorExecFile.FullName, opFile.FullName);
         }
         private static void WriteToBinaryFile<T>(string filePath, T opSpec)
         {
+            
             using (Stream stream = File.Open(filePath, false ? FileMode.Append : FileMode.Create))
             {
                 var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();

@@ -20,10 +20,18 @@ namespace Operator
         public static void Main(string[] args)
         {
             Console.WriteLine("Operator Program started");
-            Console.ReadLine();
+            Console.WriteLine(args.Length);
+            //Console.ReadLine();
+            //System.IO.StreamWriter f = new System.IO.StreamWriter(@"C:\Users\paulo\Desktop\teste.txt");
+            //f.WriteLine(args[0]);
+
+            //f.Close();
             if (args.Length == 1)
             {
                 string fileName = args[0];
+
+                Console.WriteLine("path for config file "+fileName);
+                //Console.ReadLine();
                 FileInfo file = new FileInfo(fileName);
                 if (file.Exists)
                 {
@@ -79,6 +87,8 @@ namespace Operator
             {
                 Console.WriteLine(INVD_ARGS);
             }
+
+            Console.ReadLine();
         }
         private static T ReadFromBinaryFile<T>(string filePath)
         {
