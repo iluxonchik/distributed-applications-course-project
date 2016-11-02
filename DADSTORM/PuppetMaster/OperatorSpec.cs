@@ -10,6 +10,7 @@ namespace PuppetMaster
     /// the type of the operator, replication factor, routing type, address list 
     /// and the of arguments for that operator (if appiles).
     /// </summary>
+    [Serializable]
     public class OperatorSpec
     {
         public class OperatorSpecComparer : IComparer<OperatorSpec>
