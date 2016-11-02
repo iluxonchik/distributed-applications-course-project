@@ -10,11 +10,16 @@ using System.Windows.Forms;
 
 namespace PuppetMasterGUI
 {
-    public partial class Form1 : Form
+    public partial class frmPuppetMaster : Form
     {
-        public Form1()
+        public frmPuppetMaster()
         {
             InitializeComponent();
+        }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
         }
     }
 }
