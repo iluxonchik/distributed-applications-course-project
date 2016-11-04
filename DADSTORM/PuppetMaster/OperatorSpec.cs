@@ -31,6 +31,16 @@ namespace PuppetMaster
         public List<string> Args { get; set; } = new List<string>();
         public List<OperatorOutput> OutputOperators { get; set; } = new List<OperatorOutput>();
 
+        public string Url { get; set; }
+
+        public LoggingLevel loginLevel { get; set; }
+
+        public Semantics semantics { get; set; }
+
+        public string puppetMasterUrl { get; set; }
+
+
+
         public OperatorSpec()
         {
             // empty on purpose

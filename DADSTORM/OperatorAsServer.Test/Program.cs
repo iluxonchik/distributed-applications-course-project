@@ -25,7 +25,7 @@ namespace OperatorAsServer.Tests
             TcpChannel channel = new TcpChannel(port);
             ChannelServices.RegisterChannel(channel, false);
             OperatorImpl op = new CountOperator();
-            RemotingServices.Marshal(op, "OperatorService", typeof(OperatorImpl));
+            RemotingServices.Marshal(op, "op", typeof(OperatorImpl));
 
             Console.ReadLine();
 

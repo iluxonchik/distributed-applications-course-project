@@ -22,7 +22,7 @@ namespace Operator
         public static void Main(string[] args)
         {
             Console.WriteLine("Operator Program started");
-            Console.WriteLine(args.Length);
+            //Console.WriteLine(args.Length);
             //Console.ReadLine();
             //System.IO.StreamWriter f = new System.IO.StreamWriter(@"C:\Users\paulo\Desktop\teste.txt");
             //f.WriteLine(args[0]);
@@ -42,6 +42,9 @@ namespace Operator
                     {
                         OperatorSpec opSpec = ReadFromBinaryFile<OperatorSpec>(file.FullName);
                         OperatorImpl op = null;
+                        Console.WriteLine("Parametros do config");
+                        Console.WriteLine(opSpec.ToString());
+
                         switch (opSpec.Type)
                         {
                             case OperatorType.Count:
@@ -74,19 +77,24 @@ namespace Operator
 
                         }
 
-                        Uri u = new Uri(opSpec.Addrs[0]);
+                        Uri u = new Uri(opSpec.Url);
                         op.myPort = u.Port;
-
+                        //FIX 
                         props["port"] = u.Port;
-                        props["timeout"] = 1000; // in milliseconds
+                        //props["timeout"] = 1000; // in milliseconds
                         TcpChannel channel = new TcpChannel(props, null, null);
                         ChannelServices.RegisterChannel(channel, false);
-                        RemotingServices.Marshal(op, "OperatorService", typeof(OperatorImpl));
+                        RemotingServices.Marshal(op, "op", typeof(OperatorImpl));
 
+                        Console.WriteLine("press entrer to start OP");
+                        Console.Read();
+                        op.Start();
+                        Console.WriteLine("Já fiz start");
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         Console.WriteLine(ERR_CONF_FILE);
+                        Console.WriteLine(e.StackTrace);
 
                     }
                 }

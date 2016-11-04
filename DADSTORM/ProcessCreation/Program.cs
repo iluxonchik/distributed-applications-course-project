@@ -9,7 +9,9 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 
+
 using System.Xml;
+using System.Collections;
 
 namespace ProcessCreation
 {
@@ -17,8 +19,9 @@ namespace ProcessCreation
     {
         private const int PORT= 10000;
         private static string operatorPathExec;
-        private static string DEFAULT_OP_PATH = @"\..\..\resources\Operator.exe";
+        private static string DEFAULT_OP_PATH = @"../../../../Operator/bin/Debug/Operator.exe";
         private static FileInfo operatorExecFile;
+        private static IDictionary props = new Hashtable();
         public static void Main(string[] args)
         {
 
@@ -40,8 +43,11 @@ namespace ProcessCreation
                 operatorPathExec= Console.ReadLine();
                 operatorExecFile = new FileInfo(operatorPathExec);
             }
-            
-            TcpChannel channel = new TcpChannel(PORT);
+
+
+            props["port"] = PORT;
+            //props["timeout"] = 1000; // in milliseconds
+            TcpChannel channel = new TcpChannel(props, null, null);
             ChannelServices.RegisterChannel(channel, false);
             ProcessCreationProxyImpl servicos = new ProcessCreationProxyImpl(operatorExecFile);
             Console.WriteLine("PCS Started");

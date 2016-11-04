@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 
 namespace Operator
 {
-    
+
     public abstract class OperatorImpl : MarshalByRefObject, IOperatorProxy, IProcessingNodesProxy
     {
         //TODO:where does the routing and the and process semantics cames in??? probably in
@@ -46,12 +46,12 @@ namespace Operator
         /// <summary>
         /// list of tuples already processed and ready to be outputed
         /// </summary<>
-        public List<OperatorTuple> readyTuples { get; private set; }
+        //public List<OperatorTuple> readyTuples { get; private set; }
 
-        public const int DEFAULT_NUM_WORKERS = 10;
+        public const int DEFAULT_NUM_WORKERS = 1;
         public OperatorSpec Spec { get; private set; }
 
-        private FileInfo logFile;
+
         protected readonly string BASE_DIR = Directory.GetCurrentDirectory();
         protected readonly string RESOURCES_DIR = Directory.GetCurrentDirectory() + "../../../resources/";
 
@@ -59,18 +59,30 @@ namespace Operator
         {
             this.Spec = spec;
             InitOp();
-
-            // for the logging level full
-            logFile = new FileInfo(RESOURCES_DIR + "/operator/" + this.Spec.Id);
-            if (!logFile.Exists)
+            Console.WriteLine("Number OF inuts " + this.Spec.Inputs.Count);
+            foreach (OperatorInput in_ in this.Spec.Inputs)
             {
-                if (!Directory.Exists(RESOURCES_DIR))
+
+                if (in_.Type.Equals(InputType.File))
                 {
-                    Directory.CreateDirectory(RESOURCES_DIR);
+
+                    this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(in_.Name)));
+
+                    //Console.WriteLine(this.waitingTuples.ToString());
+                    //foreach(OperatorTuple tuple in this.waitingTuples)
+                    //{
+
+                    //    List<string> t = tuple.Tuple;
+                    //    foreach(string s in t)
+                    //    {
+                    //        Console.Write(s + " ");
+                    //    }
+                    //    Console.WriteLine();
+                    //}
                 }
-                var myFile = File.Create(logFile.FullName);
-                myFile.Close();
             }
+
+
 
         }
         public OperatorImpl()
@@ -84,7 +96,7 @@ namespace Operator
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
             this.waitingTuples = new List<OperatorTuple>();
-            this.readyTuples = new List<OperatorTuple>();
+            //this.readyTuples = new List<OperatorTuple>();
             initWorkers();
 
         }
@@ -120,21 +132,26 @@ namespace Operator
                     {
                         if (this.interval > 0)
                             Monitor.Wait(this.interval);
-                        TreatTuples();
+                        TreatTuple();
                         Monitor.PulseAll(this);
                     }
                 }
             }
         }
 
-        private void TreatTuples()
+        private void TreatTuple()
         {
             OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
             tuple = Operation(tuple);
-
+            Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
             if (tuple != null)
-                this.readyTuples.Add(tuple);
+            {
+                Console.WriteLine("Enviar " + tuple.Tuple[0]);
+                SendTuple(tuple);
+                //this.readyTuples.Add(tuple);
+            }
+
 
             /* no need to save the tuple */
         }
@@ -158,6 +175,7 @@ namespace Operator
         }
 
         // Depends of the specific operator
+        //FIX temos que saber o login level
         public abstract void Status();
         protected void generalStatus()
         {
@@ -198,7 +216,11 @@ namespace Operator
             {
                 lock (this)
                 {
-                    //Console.WriteLine(tuple.Tuple[0]);
+                    foreach (string s in tuple.Tuple)
+                    {
+                        Console.Write(s + " ");
+                    }
+                    Console.WriteLine();
                     this.waitingTuples.Add(tuple);
                     Monitor.PulseAll(this);
                     break;
@@ -224,11 +246,36 @@ namespace Operator
         //TODO: routing and semmantics shoud apear here i think
         public void SendTuple(OperatorTuple tuple)
         {
-            IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), "tcp://localhost:9000/OperatorService");
 
-            opServer.ReceiveTuple(tuple);
+            try
+            {
+                Console.WriteLine("Send tuples to " + this.GetOutUrl());
+                IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl());
+                opServer.ReceiveTuple(tuple);
+
+                if (this.Spec.loginLevel.Equals(LoggingLevel.Full))
+                {
+                    //TODO: send tuple to puppetMaster
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+                //TODO: we probably dont want to catch all but for now 
+            }
         }
 
+        /// <summary>
+        /// for the frist delivery return index=0 because that is the only availale
+        /// </summary>
+        /// <returns></returns>
+        private string GetOutUrl()
+        {
+            //routing 
+            //FIX isto esta uma granda jabardice
+            return this.Spec.OutputOperators[0].Addresses[0];
+
+        }
 
         public List<OperatorTuple> ReadTuplesFromFile(FileInfo filePath)
         {

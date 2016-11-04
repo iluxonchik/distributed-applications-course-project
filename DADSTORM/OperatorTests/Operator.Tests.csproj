@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="OperatorBaseTestFixture.cs" />
     <Compile Include="OperatorSimpleTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -61,6 +62,10 @@
     <ProjectReference Include="..\Operator\Operator.csproj">
       <Project>{acb5537c-add5-4e2b-bff4-83f9bbce0afd}</Project>
       <Name>Operator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PuppetMaster\PuppetMaster.csproj">
+      <Project>{9470eb46-f205-4e09-8d4e-c940824c31f1}</Project>
+      <Name>PuppetMaster</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

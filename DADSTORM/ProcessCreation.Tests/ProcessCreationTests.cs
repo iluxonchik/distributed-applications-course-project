@@ -14,9 +14,9 @@ namespace ProcessCreation.Tests
     public class ProcessCreationTests : ProcessCreationBaseTestFixture
     {
 
-        //private  string  operatorPathExec = TestContext.CurrentContext.TestDirectory + "../../../resources/Operator.exe";
+
         private string operatorPathExec = BASE_DIR + @"../../../../Operator/bin/Debug/Operator.exe";
-        // private string operatorPathExec = @"C:\Users\paulo\Documents\GitHub\distributed-applications-course-project\DADSTORM\ProcessCreation.Tests\resources\Operator.exe";
+
         [SetUp]
         public void SetUp()
         {
@@ -41,7 +41,12 @@ namespace ProcessCreation.Tests
             OperatorSpec spec = new OperatorSpec();
             spec.Type = PuppetMaster.OperatorType.Count;
             spec.Id = "OP1";
+            List<OperatorInput> inputs = new List<OperatorInput>();
+            OperatorInput in_ = new OperatorInput();
+            in_.Type = InputType.Operator;
+            spec.Url = "tcp://localhost:9090";
+            spec.Inputs = inputs;
             pcs.CreateOperator(spec);
+            }
         }
     }
-}
