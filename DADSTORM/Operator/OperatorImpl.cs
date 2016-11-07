@@ -46,7 +46,7 @@ namespace Operator
         /// <summary>
         /// list of tuples already processed and ready to be outputed
         /// </summary<>
-        //public List<OperatorTuple> readyTuples { get; private set; }
+       
 
         public const int DEFAULT_NUM_WORKERS = 1;
         public OperatorSpec Spec { get; private set; }
@@ -59,7 +59,6 @@ namespace Operator
         {
             this.Spec = spec;
             InitOp();
-            Console.WriteLine("Number OF inuts " + this.Spec.Inputs.Count);
             foreach (OperatorInput in_ in this.Spec.Inputs)
             {
 
@@ -68,17 +67,7 @@ namespace Operator
 
                     this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(in_.Name)));
 
-                    //Console.WriteLine(this.waitingTuples.ToString());
-                    //foreach(OperatorTuple tuple in this.waitingTuples)
-                    //{
 
-                    //    List<string> t = tuple.Tuple;
-                    //    foreach(string s in t)
-                    //    {
-                    //        Console.Write(s + " ");
-                    //    }
-                    //    Console.WriteLine();
-                    //}
                 }
             }
 
@@ -96,7 +85,7 @@ namespace Operator
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
             this.waitingTuples = new List<OperatorTuple>();
-            //this.readyTuples = new List<OperatorTuple>();
+           
             initWorkers();
 
         }
@@ -149,7 +138,7 @@ namespace Operator
             {
                 Console.WriteLine("Enviar " + tuple.Tuple[0]);
                 SendTuple(tuple);
-                //this.readyTuples.Add(tuple);
+               
             }
 
 
@@ -174,8 +163,10 @@ namespace Operator
                 this.interval = x_ms;
         }
 
-        // Depends of the specific operator
-        //FIX temos que saber o login level
+        /// <summary>
+        ///   Depends of the specific operator
+        /// </summary>
+
         public abstract void Status();
         protected void generalStatus()
         {
@@ -244,12 +235,13 @@ namespace Operator
         }
 
         //TODO: routing and semmantics shoud apear here i think
+        //routing for check point is primary and We only have one replica for each operator
         public void SendTuple(OperatorTuple tuple)
         {
 
             try
             {
-                Console.WriteLine("Send tuples to " + this.GetOutUrl());
+                //Console.WriteLine("Send tuples to " + this.GetOutUrl());
                 IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl());
                 opServer.ReceiveTuple(tuple);
 
@@ -262,6 +254,7 @@ namespace Operator
             {
                 Console.WriteLine(e.StackTrace);
                 //TODO: we probably dont want to catch all but for now 
+                // what we do may depends on semantics
             }
         }
 
@@ -272,7 +265,8 @@ namespace Operator
         private string GetOutUrl()
         {
             //routing 
-            //FIX isto esta uma granda jabardice
+            //FIX for final submition implement routing algoritm
+            // for check point it should work 
             return this.Spec.OutputOperators[0].Addresses[0];
 
         }
@@ -281,8 +275,10 @@ namespace Operator
         {
             List<OperatorTuple> tuples = new List<OperatorTuple>();
             System.IO.StreamReader file = new System.IO.StreamReader(filePath.FullName);
+
             //http://stackoverflow.com/questions/25471521/split-string-by-commas-ignoring-any-punctuation-marks-including-in-quotati
             // it does not remove the quote marks but if all url's have quote marks then it does not matter
+
             foreach (var line in File.ReadAllLines(filePath.FullName).Skip(2))
             {
                 string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
@@ -297,6 +293,21 @@ namespace Operator
         /// implents the diferent types of operators
         /// </summary>
         public abstract OperatorTuple Operation(OperatorTuple tuple);
+
+        private void PrintWaitingThreads()
+        {
+            Console.WriteLine(this.waitingTuples.ToString());
+            foreach (OperatorTuple tuple in this.waitingTuples)
+            {
+
+                List<string> t = tuple.Tuple;
+                foreach (string s in t)
+                {
+                    Console.Write(s + " ");
+                }
+                Console.WriteLine();
+            }
+        }
 
     }
 }

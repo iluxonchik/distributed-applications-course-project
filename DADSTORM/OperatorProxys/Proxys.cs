@@ -68,7 +68,6 @@ namespace OperatorProxys
         /// The operator that wants to send tuples, calls this service from "OperatorDestination"
         /// and gives him the tuples that he wants to
         /// </summary>
-        // TODO: tuple er string ou ser ADT (abstract data type)
         /// Assuming a tuple is represented By a string array, it can be a Abstract type
         /// 
         /// <param name="tuples">list containing the tuples</param>

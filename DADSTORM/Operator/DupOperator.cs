@@ -24,7 +24,7 @@ namespace Operator
         public override void Status()
         {
             generalStatus();
-            Console.WriteLine("I'm dupping");
+            Console.WriteLine("Dupping");
         }
     }
 }

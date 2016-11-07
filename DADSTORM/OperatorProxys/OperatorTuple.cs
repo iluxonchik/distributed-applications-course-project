@@ -5,15 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace OperatorProxys
-{ [Serializable]
-   public  class OperatorTuple
+{
+    [Serializable]
+    public class OperatorTuple
     {
-     public   List<string> Tuple { get; set; }
+        public List<string> Tuple { get; set; }
 
-    public OperatorTuple (List<String> tuple)
+        public OperatorTuple(List<String> tuple)
         {
             this.Tuple = tuple;
         }
-        
+
     }
 }
