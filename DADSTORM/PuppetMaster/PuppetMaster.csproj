@@ -44,9 +44,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Command.cs" />
+    <Compile Include="CommandType.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigParser.cs" />
     <Compile Include="ConfigTypes.cs" />
+    <Compile Include="Exceptions\NullReferrencePropertyException.cs" />
     <Compile Include="Exceptions\UnknownOperatorRoutingException.cs" />
     <Compile Include="Exceptions\UnknownOperatorTypeException.cs" />
     <Compile Include="ExtenstionMethods.cs" />
