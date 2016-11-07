@@ -40,6 +40,13 @@ namespace Operator
             return null;
             
         }
-        
+
+        public override void Status()
+        {
+            generalStatus();
+            Console.WriteLine("Id: " + id + " | Unique is/are: ");
+            foreach (string s in uniq)
+                Console.Write(s + " | ");
+        }
     }
 }

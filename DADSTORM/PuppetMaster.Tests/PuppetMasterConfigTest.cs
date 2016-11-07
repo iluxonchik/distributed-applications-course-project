@@ -255,8 +255,8 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Hashing, Arg = 1 };
 
-            List<OutputOperator> expOutput = new List<OutputOperator>();
-            expOutput.Add(new OutputOperator() { Name = "OP4", Addresses = new List<string>() { "tcp://1.2.3.10:11000/op" } });
+            List<OperatorOutput> expOutput = new List<OperatorOutput>();
+            expOutput.Add(new OperatorOutput() { Name = "OP4", Addresses = new List<string>() { "tcp://1.2.3.10:11000/op" } });
 
             OperatorSpec expected = new OperatorSpec()
             {
@@ -291,8 +291,8 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Hashing, Arg = 1 };
 
-            List<OutputOperator> expOutput = new List<OutputOperator>();
-            expOutput.Add(new OutputOperator() { Name = "OP2", Addresses = new List<string> { "tcp://1.2.3.6:11000/op", "tcp://1.2.3.6:11001/op" } });
+            List<OperatorOutput> expOutput = new List<OperatorOutput>();
+            expOutput.Add(new OperatorOutput() { Name = "OP2", Addresses = new List<string> { "tcp://1.2.3.6:11000/op", "tcp://1.2.3.6:11001/op" } });
 
             OperatorSpec expected = new OperatorSpec()
             {
@@ -329,8 +329,8 @@ namespace PuppetMaster.Tests
 
 
 
-            List<OutputOperator> expOutput = new List<OutputOperator>();
-            expOutput.Add(new OutputOperator() { Name = "OP3", Addresses = new List<string> { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" } });
+            List<OperatorOutput> expOutput = new List<OperatorOutput>();
+            expOutput.Add(new OperatorOutput() { Name = "OP3", Addresses = new List<string> { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" } });
 
             OperatorSpec expected = new OperatorSpec()
             {
@@ -451,9 +451,9 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Hashing, Arg = 1 };
 
-            List<OutputOperator> expOutput = new List<OutputOperator>();
-            expOutput.Add(new OutputOperator() { Name = "OP2", Addresses = new List<string> { "tcp://1.2.3.6:11000/op", "tcp://1.2.3.6:11001/op" } });
-            expOutput.Add(new OutputOperator() { Name = "OP5", Addresses = new List<string> { "tcp://1.9.9.2:1410/ninety-ninety-two", "tcp://2.0.0.5:1801/the-documentary" } });
+            List<OperatorOutput> expOutput = new List<OperatorOutput>();
+            expOutput.Add(new OperatorOutput() { Name = "OP2", Addresses = new List<string> { "tcp://1.2.3.6:11000/op", "tcp://1.2.3.6:11001/op" } });
+            expOutput.Add(new OperatorOutput() { Name = "OP5", Addresses = new List<string> { "tcp://1.9.9.2:1410/ninety-ninety-two", "tcp://2.0.0.5:1801/the-documentary" } });
 
             OperatorSpec expected = new OperatorSpec()
             {
@@ -492,9 +492,9 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Random };
 
-            List<OutputOperator> expOutput = new List<OutputOperator>();
-            expOutput.Add(new OutputOperator() { Name = "OP3", Addresses = new List<string> { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" } });
-            expOutput.Add(new OutputOperator() { Name = "OP5", Addresses = new List<string> { "tcp://1.9.9.2:1410/ninety-ninety-two", "tcp://2.0.0.5:1801/the-documentary" } });
+            List<OperatorOutput> expOutput = new List<OperatorOutput>();
+            expOutput.Add(new OperatorOutput() { Name = "OP3", Addresses = new List<string> { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" } });
+            expOutput.Add(new OperatorOutput() { Name = "OP5", Addresses = new List<string> { "tcp://1.9.9.2:1410/ninety-ninety-two", "tcp://2.0.0.5:1801/the-documentary" } });
 
             OperatorSpec expected = new OperatorSpec()
             {

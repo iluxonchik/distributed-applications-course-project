@@ -32,6 +32,11 @@ namespace Operator
             /* check value later */
             return null;
         }
-        
+
+        public override void Status()
+        {
+            generalStatus();
+            Console.WriteLine("Count result: " + countResult);
+        }
     }
 }

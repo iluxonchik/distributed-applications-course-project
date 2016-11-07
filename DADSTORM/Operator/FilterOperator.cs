@@ -38,7 +38,7 @@ namespace Operator
             compare = compare_;
         }
         
-        /* WARNING verififcar a operacao é assim: se a string for igual a operacao desejada devolve tuplo */
+        
         public override OperatorTuple Operation(OperatorTuple tuple)
         {
             switch(cond)
@@ -66,6 +66,11 @@ namespace Operator
             }
             return null;
         }
-        
+
+        public override void Status()
+        {
+            generalStatus();
+            Console.WriteLine("Id: " + id + " | Condition: " + cond + " | Compare: " + compare);
+        }
     }
 }

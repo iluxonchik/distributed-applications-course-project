@@ -29,7 +29,17 @@ namespace PuppetMaster
         public OperatorRouting Routing;
         public List<string> Addrs = new List<string>();
         public List<string> Args { get; set; } = new List<string>();
-        public List<OutputOperator> OutputOperators { get; set; } = new List<OutputOperator>();
+        public List<OperatorOutput> OutputOperators { get; set; } = new List<OperatorOutput>();
+
+        public string Url { get; set; }
+
+        public LoggingLevel loginLevel { get; set; }
+
+        public Semantics semantics { get; set; }
+
+        public string puppetMasterUrl { get; set; }
+
+
 
         public OperatorSpec()
         {

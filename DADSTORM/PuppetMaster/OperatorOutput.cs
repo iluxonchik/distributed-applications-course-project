@@ -4,16 +4,16 @@ using System.Collections.Generic;
 namespace PuppetMaster
 {
     [Serializable]
-    public class OutputOperator
+    public class OperatorOutput
     {
 
-        public OutputOperator(OperatorSpec op)
+        public OperatorOutput(OperatorSpec op)
         {
             Name = op.Id;
             Addresses = op.Addrs;
         }
 
-        public OutputOperator()
+        public OperatorOutput()
         {
             // empty
         }

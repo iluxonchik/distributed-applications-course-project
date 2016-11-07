@@ -8,38 +8,36 @@ using PuppetMaster;
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Tcp;
+using System.Collections;
 
 namespace Operator
 {
     class Program
     {
-        public const string INVD_ARGS= "Invalid arguments";
+        public const string INVD_ARGS = "Invalid arguments";
         public const string ERR_CONF_FILE = "Problem's reading config file, check again";
 
-        
+        private static IDictionary props = new Hashtable();
+
         public static void Main(string[] args)
         {
             Console.WriteLine("Operator Program started");
-            Console.WriteLine(args.Length);
-            //Console.ReadLine();
-            //System.IO.StreamWriter f = new System.IO.StreamWriter(@"C:\Users\paulo\Desktop\teste.txt");
-            //f.WriteLine(args[0]);
-
-            //f.Close();
             if (args.Length == 1)
             {
                 string fileName = args[0];
 
-                Console.WriteLine("path for config file "+fileName);
-                //Console.ReadLine();
+                //Console.WriteLine("path for config file " + fileName);
                 FileInfo file = new FileInfo(fileName);
                 if (file.Exists)
                 {
-                   
+
                     try
                     {
                         OperatorSpec opSpec = ReadFromBinaryFile<OperatorSpec>(file.FullName);
                         OperatorImpl op = null;
+                        //Console.WriteLine("Parametros do config");
+                        //Console.WriteLine(opSpec.ToString());
+
                         switch (opSpec.Type)
                         {
                             case OperatorType.Count:
@@ -50,7 +48,7 @@ namespace Operator
                                 string dll = opSpec.Args[0];
                                 string class_ = opSpec.Args[1];
                                 string method = opSpec.Args[2];
-                                op = new CustomOperator(opSpec,dll, class_,method);
+                                op = new CustomOperator(opSpec, dll, class_, method);
                                 Console.WriteLine("new Custom Operator");
                                 break;
                             case OperatorType.Dup:
@@ -61,29 +59,41 @@ namespace Operator
                                 int id = Int32.Parse(opSpec.Args[0]);
                                 string cond = opSpec.Args[1];
                                 string value = opSpec.Args[2];
-                                op = new FilterOperator(opSpec,id, cond,value);
+                                op = new FilterOperator(opSpec, id, cond, value);
                                 Console.WriteLine("new Filter Operator");
                                 break;
                             case OperatorType.Uniq:
-                                 id = Int32.Parse(opSpec.Args[0]);
-                                op = new UniqOperator(opSpec,id);
+                                id = Int32.Parse(opSpec.Args[0]);
+                                op = new UniqOperator(opSpec, id);
                                 Console.WriteLine("new Uniq Operator");
                                 break;
 
                         }
-                        //int port= opSepc.Port;
-                        //TcpChannel channel = new TcpChannel(port);
-                        //ChannelServices.RegisterChannel(channel, false);
-                        //RemotingServices.Marshal(op, "OperatorService", typeof(OperatorImpl));
+
+                        Uri u = new Uri(opSpec.Url);
+                        op.myPort = u.Port;
+                        //FIX o illian ia meter o porto no operator sepc???
+                        props["port"] = u.Port;
+                        //props["timeout"] = 1000; // in milliseconds
+                        TcpChannel channel = new TcpChannel(props, null, null);
+                        ChannelServices.RegisterChannel(channel, false);
+                        RemotingServices.Marshal(op, "op", typeof(OperatorImpl));
+
+                        Console.WriteLine("press entrer to start OP");
+                        Console.Read();
+                        op.Start();
+                        Console.WriteLine("Já fiz start");
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
                         Console.WriteLine(ERR_CONF_FILE);
-                       
-                    }  
+                        Console.WriteLine(e.StackTrace);
+
+                    }
                 }
 
-            }else
+            }
+            else
             {
                 Console.WriteLine(INVD_ARGS);
             }

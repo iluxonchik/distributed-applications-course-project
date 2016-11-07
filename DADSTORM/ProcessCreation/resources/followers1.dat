@@ -1,0 +1,3 @@
+%% This file contains tweeters and their followers.
+%% The format of each line is: User id, follower 1, follower 2, follower3...
+user2, user10

@@ -15,6 +15,7 @@ using System.Threading.Tasks;
  */
 namespace PuppetMaster
 {
+    
     public enum LoggingLevel
     {
         Full, Light

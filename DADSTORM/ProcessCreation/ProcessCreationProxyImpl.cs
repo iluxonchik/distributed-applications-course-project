@@ -18,8 +18,7 @@ namespace ProcessCreation
         }
         public void CreateOperator(OperatorSpec opSpec)
         {
-            Console.WriteLine("CreateOperator colled");
-            //ProcessStartInfo start = new ProcessStartInfo(operatorExecFile.FullName);
+            //Console.WriteLine("CreateOperator colled");
             Directory.SetCurrentDirectory(operatorExecFile.Directory.FullName);
            
             FileInfo opFile = new FileInfo(Directory.GetCurrentDirectory() + "/operator/" + opSpec.Id);
@@ -40,7 +39,7 @@ namespace ProcessCreation
         }
         private static void WriteToBinaryFile<T>(string filePath, T opSpec)
         {
-            
+            //TODO: FIX remove short if from file open, since it is always
             using (Stream stream = File.Open(filePath, false ? FileMode.Append : FileMode.Create))
             {
                 var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();

@@ -70,6 +70,11 @@ namespace Operator
 
             return null;
         }
-        
+
+        public override void Status()
+        {
+            generalStatus();
+            Console.WriteLine("Dll: " + dll_ + " | Class: " + class_ + " | Method: " + method_);
+        }
     }
 }
