@@ -40,7 +40,7 @@ namespace ProcessCreation.Tests
 
             OperatorSpec spec = new OperatorSpec();
             spec.Type = PuppetMaster.OperatorType.Count;
-            spec.Id = "OP1";
+            spec.Id = "OP4";
             List<OperatorInput> inputs = new List<OperatorInput>();
             OperatorInput in_ = new OperatorInput();
             in_.Type = InputType.Operator;
