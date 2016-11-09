@@ -8,6 +8,7 @@ using System.Threading;
 using System.IO;
 using PuppetMasterProxy;
 using ConfigTypes;
+using ProcessCreationProxy;
 
 namespace PuppetMaster
 {
@@ -43,7 +44,8 @@ namespace PuppetMaster
             {
 
                 // TODO: make pcs create the operators
-                // CreateOperator(os);
+                // IProcessCreationProxy pcs = (IProcessCreationProxy)Activator.GetObject(typeof(IProcessCreationProxy), "tcp://localhost:10000/ProcessCreation");
+                // pcs.CreateOperator(os);
             }
         }
 
