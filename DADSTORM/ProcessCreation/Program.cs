@@ -35,7 +35,8 @@ namespace ProcessCreation
             }
 
              operatorExecFile = new FileInfo(operatorPathExec);
-
+            Console.WriteLine("operator execFIle "+operatorExecFile.FullName);
+            Console.WriteLine("directoria corrent " + Directory.GetCurrentDirectory());
             while (!File.Exists(operatorExecFile.FullName))
             {
                 Console.WriteLine("Invalid path ");

@@ -35,7 +35,7 @@ namespace ProcessCreation.Tests
 
             List<OperatorOutput> expOutput = new List<OperatorOutput>();
             expOutput.Add(new OperatorOutput() { Name = "OP2", Addresses = new List<string>() { "tcp://localhost:9500/op" } });
-
+          
             op1 = new OperatorSpec()
             {
                 Id = "OP1",
@@ -50,6 +50,7 @@ namespace ProcessCreation.Tests
                 loginLevel = LoggingLevel.Light,
                 semantics = Semantics.AtLeastOnce,
                 //puppetMasterUrl= "tcp://localHost:7000",
+                
 
             };
 
@@ -59,6 +60,7 @@ namespace ProcessCreation.Tests
             List<OperatorOutput>  expOutput1 = new List<OperatorOutput>();
             expOutput1.Add(new OperatorOutput() { Name = "OP3", Addresses = new List<string>() { "tcp://localhost:8086/op" } });
 
+         
             op2 = new OperatorSpec()
             {
                 Id = "OP2",
@@ -68,13 +70,15 @@ namespace ProcessCreation.Tests
                 semantics = Semantics.AtLeastOnce,
                 Type = OperatorType.Dup,
                 OutputOperators = expOutput1,
-                ReplicationFactor = 1
+                ReplicationFactor = 1,
+                Routing = expRouting
+
             };
 
             //OP 3--------------------
             List<OperatorInput> expInputs2 = new List<OperatorInput>();
             expInputs2.Add(new OperatorInput() { Name = "OP2", Type = InputType.Operator, Addresses = new List<string> { "tcp://localhost:9500/op" } });
-           
+          
             op3 = new OperatorSpec()
             {
                 Id = "OP3",
@@ -82,6 +86,7 @@ namespace ProcessCreation.Tests
                 Url = "tcp://localhost:8086/op",
                 loginLevel = LoggingLevel.Light,
                 semantics = Semantics.AtLeastOnce,
+                Routing = expRouting,
                 Type = OperatorType.Count,
                 ReplicationFactor = 1
             };

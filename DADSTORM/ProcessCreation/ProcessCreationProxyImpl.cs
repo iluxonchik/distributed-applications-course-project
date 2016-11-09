@@ -12,6 +12,7 @@ namespace ProcessCreation
 {
     public class ProcessCreationProxyImpl : MarshalByRefObject, IProcessCreationProxy
     {
+
         private FileInfo operatorExecFile;
         public ProcessCreationProxyImpl(FileInfo operatorExecFile)
         {

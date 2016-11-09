@@ -140,7 +140,7 @@ namespace Operator.Tests
             dop.Start();
 
             //precisamos de garantir que as thread processão os tuplos
-            Thread.Sleep(100);
+            Thread.Sleep(150);
 
             Assert.That(Is.Equals(dop.waitingTuples.Count, 0));
             //Assert.That(Is.Equals(dop.readyTuples.Count, 3));
