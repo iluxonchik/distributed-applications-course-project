@@ -4,17 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{18890597-F7BF-47EC-BAF1-5849D327C0CA}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <ProjectGuid>{51665A4C-3C21-4A4C-952C-7C46E466AB56}</ProjectGuid>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ProcessCreation</RootNamespace>
-    <AssemblyName>ProcessCreation</AssemblyName>
+    <RootNamespace>ConfigTypes</RootNamespace>
+    <AssemblyName>ConfigTypes</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,7 +22,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -33,9 +30,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=9.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,25 +44,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ProcessCreationProxyImpl.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Command.cs" />
+    <Compile Include="CommandType.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="ConfigTypes.cs" />
+    <Compile Include="Exceptions\NullReferrencePropertyException.cs" />
+    <Compile Include="Exceptions\UnknownOperatorRoutingException.cs" />
+    <Compile Include="Exceptions\UnknownOperatorTypeException.cs" />
+    <Compile Include="OperatorInput.cs" />
+    <Compile Include="OperatorOutput.cs" />
+    <Compile Include="OperatorRouting.cs" />
+    <Compile Include="OperatorSpec.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="resources\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ConfigTypes\ConfigTypes.csproj">
-      <Project>{51665a4c-3c21-4a4c-952c-7c46e466ab56}</Project>
-      <Name>ConfigTypes</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ProcessCreationProxy\ProcessCreationProxy.csproj">
-      <Project>{e8788cdc-7eaa-4fda-839f-041c25ece1b9}</Project>
-      <Name>ProcessCreationProxy</Name>
-    </ProjectReference>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

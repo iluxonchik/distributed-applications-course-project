@@ -54,6 +54,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ConfigTypes\ConfigTypes.csproj">
+      <Project>{51665a4c-3c21-4a4c-952c-7c46e466ab56}</Project>
+      <Name>ConfigTypes</Name>
+    </ProjectReference>
     <ProjectReference Include="..\OperatorProxys\OperatorProxys.csproj">
       <Project>{aa9028d8-fa60-46f2-9398-89f0b6d658f1}</Project>
       <Name>OperatorProxys</Name>
@@ -61,10 +65,6 @@
     <ProjectReference Include="..\PuppetMasterProxy\PuppetMasterProxy.csproj">
       <Project>{4e5e1b83-6253-4d2f-95a2-5b20c7142678}</Project>
       <Name>PuppetMasterProxy</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PuppetMaster\PuppetMaster.csproj">
-      <Project>{9470eb46-f205-4e09-8d4e-c940824c31f1}</Project>
-      <Name>PuppetMaster</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

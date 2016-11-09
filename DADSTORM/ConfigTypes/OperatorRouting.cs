@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace PuppetMaster
+namespace ConfigTypes
 {
     [Serializable]
     public class OperatorRouting

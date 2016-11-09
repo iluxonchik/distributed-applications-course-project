@@ -7,6 +7,7 @@ using OperatorProxys;
 using System.Threading;
 using System.IO;
 using PuppetMasterProxy;
+using ConfigTypes;
 
 namespace PuppetMaster
 {

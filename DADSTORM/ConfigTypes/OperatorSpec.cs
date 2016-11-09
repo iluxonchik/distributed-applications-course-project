@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace PuppetMaster
+namespace ConfigTypes
 {
     /// <summary>
     /// Represents a specification of an Operator. Contains the id of the operator,

@@ -8,6 +8,7 @@ using NUnit.Framework.Constraints;
 using System.IO;
 using System.Reflection;
 using PuppetMaster;
+using ConfigTypes;
 
 namespace PuppetMaster.Tests
 {

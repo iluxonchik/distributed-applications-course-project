@@ -1,4 +1,4 @@
-﻿namespace PuppetMaster
+﻿namespace ConfigTypes
 {
 
    public  enum CommandType

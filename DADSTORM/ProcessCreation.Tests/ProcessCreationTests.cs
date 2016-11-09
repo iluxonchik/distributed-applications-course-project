@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System.IO;
 using System.Diagnostics;
-using PuppetMaster;
+using ConfigTypes;
 
 namespace ProcessCreation.Tests
 {
@@ -39,7 +39,7 @@ namespace ProcessCreation.Tests
             ProcessCreationProxyImpl pcs = new ProcessCreationProxyImpl(file);
 
             OperatorSpec spec = new OperatorSpec();
-            spec.Type = PuppetMaster.OperatorType.Count;
+            spec.Type = ConfigTypes.OperatorType.Count;
             spec.Id = "OP4";
             List<OperatorInput> inputs = new List<OperatorInput>();
             OperatorInput in_ = new OperatorInput();

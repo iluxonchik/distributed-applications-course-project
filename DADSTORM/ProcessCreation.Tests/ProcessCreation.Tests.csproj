@@ -55,6 +55,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ConfigTypes\ConfigTypes.csproj">
+      <Project>{51665a4c-3c21-4a4c-952c-7c46e466ab56}</Project>
+      <Name>ConfigTypes</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ProcessCreationProxy\ProcessCreationProxy.csproj">
       <Project>{e8788cdc-7eaa-4fda-839f-041c25ece1b9}</Project>
       <Name>ProcessCreationProxy</Name>
@@ -62,10 +66,6 @@
     <ProjectReference Include="..\ProcessCreation\ProcessCreation.csproj">
       <Project>{18890597-f7bf-47ec-baf1-5849d327c0ca}</Project>
       <Name>ProcessCreation</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\PuppetMaster\PuppetMaster.csproj">
-      <Project>{9470eb46-f205-4e09-8d4e-c940824c31f1}</Project>
-      <Name>PuppetMaster</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

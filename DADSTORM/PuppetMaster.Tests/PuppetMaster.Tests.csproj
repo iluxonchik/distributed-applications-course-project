@@ -89,6 +89,10 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ConfigTypes\ConfigTypes.csproj">
+      <Project>{51665a4c-3c21-4a4c-952c-7c46e466ab56}</Project>
+      <Name>ConfigTypes</Name>
+    </ProjectReference>
     <ProjectReference Include="..\PuppetMaster\PuppetMaster.csproj">
       <Project>{9470EB46-F205-4E09-8D4E-C940824C31F1}</Project>
       <Name>PuppetMaster</Name>

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PuppetMaster
+namespace ConfigTypes
 {
     [Serializable]
     public class OperatorOutput

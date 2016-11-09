@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PuppetMaster;
+using ConfigTypes;
 using System.IO;
 
 namespace ProcessCreation.Tests

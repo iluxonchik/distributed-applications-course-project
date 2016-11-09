@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PuppetMaster.Exceptions
+namespace ConfigTypes.Exceptions
 {
     [Serializable]
    public class UnknownOperatorTypeException : Exception

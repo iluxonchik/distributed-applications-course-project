@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace PuppetMaster.Exceptions
+namespace ConfigTypes.Exceptions
 {
     [Serializable]
    public  class UnknownOperatorRoutingException : Exception

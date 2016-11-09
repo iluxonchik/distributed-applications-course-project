@@ -8,7 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using PuppetMaster;
-using PuppetMaster.Exceptions;
+using ConfigTypes;
+using ConfigTypes.Exceptions;
 
 namespace PuppetMasterGUI
 {
@@ -109,10 +110,6 @@ namespace PuppetMasterGUI
                 }
             }
         }
-
-        private void frmPuppetMaster_Load(object sender, EventArgs e)
-        {
-
-        }
+        
     }
 }

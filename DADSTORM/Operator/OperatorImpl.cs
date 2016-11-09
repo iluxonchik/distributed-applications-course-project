@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using OperatorProxys;
 using System.Diagnostics;
 using System.Threading;
-using PuppetMaster;
+using ConfigTypes;
 using System.IO;
 using System.Text.RegularExpressions;
 using PuppetMasterProxy;

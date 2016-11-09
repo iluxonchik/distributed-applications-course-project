@@ -13,7 +13,7 @@ using System.Threading.Tasks;
  * would be to use subclassing, but config parsing isn't an essential part of the project
  * and this won't be mantained in the future.  
  */
-namespace PuppetMaster
+namespace ConfigTypes
 {
     
     public enum LoggingLevel
