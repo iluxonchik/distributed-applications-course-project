@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace PuppetMaster.Exceptions
 {
     [Serializable]
-    class UnknownOperatorRoutingException : Exception
+   public  class UnknownOperatorRoutingException : Exception
     {
         public UnknownOperatorRoutingException()
         {

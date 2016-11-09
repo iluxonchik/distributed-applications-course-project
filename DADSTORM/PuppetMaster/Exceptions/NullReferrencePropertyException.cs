@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace PuppetMaster.Exceptions
 {
     [Serializable]
-    class NullReferrencePropertyException : Exception
+   public class NullReferrencePropertyException : Exception
     {
         public NullReferrencePropertyException()
         {

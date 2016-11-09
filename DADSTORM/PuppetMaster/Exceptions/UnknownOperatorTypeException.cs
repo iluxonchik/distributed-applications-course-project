@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace PuppetMaster.Exceptions
 {
     [Serializable]
-    class UnknownOperatorTypeException : Exception
+   public class UnknownOperatorTypeException : Exception
     {
         public UnknownOperatorTypeException()
         {

@@ -1,11 +1,11 @@
 ﻿namespace PuppetMaster
 {
 
-    enum CommandType
+   public  enum CommandType
     {
         Start,
         Interval,
-        Satatus,
+        Status,
         Crash,
         Freeze,
         Unfreeze,

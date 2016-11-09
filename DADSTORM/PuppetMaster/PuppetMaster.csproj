@@ -58,9 +58,16 @@
     <Compile Include="OperatorSpec.cs" />
     <Compile Include="OperatorOutput.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PuppetMasterControler.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\OperatorProxys\OperatorProxys.csproj">
+      <Project>{aa9028d8-fa60-46f2-9398-89f0b6d658f1}</Project>
+      <Name>OperatorProxys</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

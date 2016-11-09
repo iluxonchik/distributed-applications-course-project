@@ -11,5 +11,6 @@ namespace PuppetMaster
         public LoggingLevel LoggingLevel { get; set; }
         public List<OperatorSpec> Operators { get; set; }
         public Semantics Semantics { get; set; }
+        public Queue<Command> commands { get; set; }
     }
 }

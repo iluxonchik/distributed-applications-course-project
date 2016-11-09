@@ -7,14 +7,20 @@ using System.Threading.Tasks;
 
 namespace PuppetMaster
 {
-    class Command
+    public class Command
     {
         private List<OperatorSpec> operators;
         private OperatorSpec opSpec;
-        private uint? repId;
-        private uint? ms;
+        private int repId;
+        //the time that OP must wait between 2 commands
+        //this needs to be int because it is going to be used for Thread.spleep that only acepts ints
+        // and we do not like casts.
+        private int ms;
 
-        CommandType Type { get; set; }
+        //the time that puppetMaster must wait between 2 commands
+        public int wait { get; }
+
+        public CommandType Type { get; set; }
 
 
         // corresponds to the OPERATOR_ID argument
@@ -32,11 +38,11 @@ namespace PuppetMaster
             set { opSpec = value; }
         }
 
-        public uint? Milliseconds
+        public int Op_ms
         {
             get
             {
-                if (ms != null)
+                if (ms > 0)
                 {
                     return ms;
                 }
@@ -44,18 +50,27 @@ namespace PuppetMaster
             }
             set { ms = value; }
         }
-        public uint? RepId
+        //public uint? RepId
+        //{
+        //    get
+        //    {
+        //        if (repId != null)
+        //        {
+        //            return repId;
+        //        }
+        //        throw new NullReferrencePropertyException("RepId property is null");
+        //    }
+        //    set { repId = value; }
+        //}
+
+            public int RepId
         {
             get
             {
-                if (repId != null)
-                {
-                    return repId;
-                }
-                throw new NullReferrencePropertyException("RepId property is null");
+                return this.repId;
             }
-            set { repId = value; }
         }
+        
 
         // this is an instance of Config.Operators, just make it point to that
         public List<OperatorSpec> Operators
