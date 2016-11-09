@@ -38,16 +38,22 @@ namespace PuppetMaster
             this.sysConfig = this.parser.Parse();
         }
 
+        public void CreateOperators()
+        {
+            foreach (OperatorSpec os in this.sysConfig.Operators)
+            {
+                CreateOperators(os);
+
+
+            }
+        }
+
         public void CreateOperators(OperatorSpec os)
         {
-            //foreach (OperatorSpec os in this.sysConfig.Operators)
-            //{
-
             // TODO: check if works
             string addr = new Uri(os.Url).Host;
             IProcessCreationProxy pcs = (IProcessCreationProxy)Activator.GetObject(typeof(IProcessCreationProxy), "tcp://" + addr + ":10000/ProcessCreation");
             pcs.CreateOperator(os);
-            //}
         }
 
 
