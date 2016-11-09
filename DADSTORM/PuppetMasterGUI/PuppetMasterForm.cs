@@ -24,11 +24,7 @@ namespace PuppetMasterGUI
             this.configFileName = null;
 
         }
-
-        private void groupBox1_Enter(object sender, EventArgs e)
-        {
-
-        }
+        
 
         private void txtConfigPath_TextChanged(object sender, EventArgs e)
         {
@@ -59,27 +55,64 @@ namespace PuppetMasterGUI
             }
             catch (Exception exp) when (exp is UnknownOperatorTypeException || exp is UnknownOperatorRoutingException)
             {
-                //TODO:
+                //TODO: our exception
+            }
+            catch (Exception expAll)
+            {
+                MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void btnRun_Click(object sender, EventArgs e)
         {
-            this.controler.RunAll();
+            try
+            {
+                this.controler.RunAll();
+            }
+            catch (Exception exp) when (exp is UnknownOperatorTypeException || exp is UnknownOperatorRoutingException)
+            {
+                //TODO: our exception
+            }
+            catch (Exception expAll)
+            {
+                MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void btnStep_Click(object sender, EventArgs e)
         {
-            Command cm = this.controler.Step();
-            if (cm.Operator.Id == null)
-                NextCommadTextBox.Text = cm.Type.ToString();
-            else
+
+            Command cm = null;
+            try
             {
-                if (cm.RepId == null)
-                    NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id;
-                else
-                    NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id + " " + cm.RepId.ToString();
+                cm = this.controler.Step();
             }
+            catch (Exception exp) when (exp is UnknownOperatorTypeException || exp is UnknownOperatorRoutingException)
+            {
+                //TODO: our exception
+            }
+            catch (Exception expAll)
+            {
+                MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            if (cm != null)
+            {
+                if (cm.Operator.Id == null)
+                    NextCommadTextBox.Text = cm.Type.ToString();
+                else
+                {
+                    if (cm.RepId < 0)
+                        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id;
+                    else
+                        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id + " " + cm.RepId.ToString();
+                }
+            }
+        }
+
+        private void frmPuppetMaster_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -36,6 +36,16 @@ namespace PuppetMaster
             this.sysConfig = this.parser.Parse();
         }
 
+        public void CreateOperators()
+        {
+            foreach (OperatorSpec os in this.sysConfig.Operators)
+            {
+
+                // TODO: make pcs create the operators
+                // CreateOperator(os);
+            }
+        }
+
         public void RunAll()
         {
             while (this.sysConfig.commands.Count > 0)
@@ -79,7 +89,6 @@ namespace PuppetMaster
                     break;
                 case CommandType.Wait:
                     this.wait = command.wait;
-
                     break;
 
             }
@@ -99,7 +108,7 @@ namespace PuppetMaster
         {
             IProcessingNodesProxy op = this.CallOpService(command);
             asyncServiceCall(op.Freeze);
-
+            this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
 
         }
 
@@ -109,6 +118,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 asyncServiceCall(op.Crash);
+                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
             }
         }
 
@@ -118,6 +128,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 op.Interval(command.Op_ms);
+                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString() + " interval: " + command.Op_ms);
             }
         }
 
@@ -127,6 +138,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 asyncServiceCall(op.Start);
+                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
             }
         }
 
@@ -136,6 +148,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 op.Status();
+                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
             }
         }
 
@@ -174,15 +187,13 @@ namespace PuppetMaster
     }
 
     public delegate void WriteLog(string msg);
-    public class PuppetMasterService : IPuppetMasterProxy
+
+    public class PuppetMasterService : MarshalByRefObject, IPuppetMasterProxy
     {
         public static PuppetMasterControler controler;
         protected readonly string logFile = "./log.txt";
         private WriteLog del;
-        PuppetMasterService()
-        {
 
-        }
 
         void IPuppetMasterProxy.ReportTuple(string OpId, int RepId, OperatorTuple tuple)
         {

@@ -14,9 +14,8 @@ using PuppetMasterProxy;
 namespace Operator
 {
 
-    public abstract class OperatorImpl : MarshalByRefObject, IOperatorProxy, IProcessingNodesProxy
+    public abstract class OperatorImpl: MarshalByRefObject, IOperatorProxy, IProcessingNodesProxy
     {
-        //TODO:where does the routing and the and process semantics cames in??? probably in
 
         //private bool start { get; set; }
         private bool freeze { get; set; }
@@ -165,13 +164,13 @@ namespace Operator
         /// <summary>
         ///   Depends of the specific operator
         /// </summary>
-
         public abstract void Status();
+
         protected void generalStatus()
         {
             Console.WriteLine(this.Spec.Type.ToString() + " | " + this.Spec.Id + " | " + myPort);
             Console.WriteLine("freeze = " + this.freeze);
-            Console.WriteLine("Sending to:");
+            Console.WriteLine("Sending to: ");
             foreach (string s in Spec.Addrs)
                 Console.WriteLine(s);
 
@@ -272,9 +271,24 @@ namespace Operator
         {
             //routing 
             //FIX for final submition implement routing algoritm
-            // for check point it should work 
-            return this.Spec.OutputOperators[0].Addresses[0];
+            // for check point it should work
+            string url = "";
 
+            switch (this.Spec.Routing.Type)
+            {
+                case RoutingType.Primary:
+                    url = this.Spec.OutputOperators[0].Addresses[0];
+                    break;
+                case RoutingType.Random:
+                    int idx = new Random().Next(0, this.Spec.OutputOperators[0].Addresses.Count);
+                    url = this.Spec.OutputOperators[0].Addresses[idx];
+                    break;
+                case RoutingType.Hashing:
+                    // some hard cheat is going to happen here....
+                    break;
+            }
+
+            return url;
         }
 
         public List<OperatorTuple> ReadTuplesFromFile(FileInfo filePath)
@@ -294,6 +308,7 @@ namespace Operator
             }
             return tuples;
         }
+
         /// <summary>
         /// Specific operator type of operation
         /// implents the diferent types of operators
