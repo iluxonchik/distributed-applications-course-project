@@ -39,6 +39,10 @@ namespace PuppetMaster
 
         public string puppetMasterUrl { get; set; }
 
+        /*
+         * incremented every time a new replica int the same OP is created
+         */
+        public int repId { get; set; }
 
 
         public OperatorSpec()

@@ -17,8 +17,6 @@ namespace Operator
     {
         //TODO:where does the routing and the and process semantics cames in??? probably in
 
-        public string Id { get; }
-
         //private bool start { get; set; }
         private bool freeze { get; set; }
 
@@ -46,7 +44,7 @@ namespace Operator
         /// <summary>
         /// list of tuples already processed and ready to be outputed
         /// </summary<>
-       
+
 
         public const int DEFAULT_NUM_WORKERS = 1;
         public OperatorSpec Spec { get; private set; }
@@ -85,7 +83,7 @@ namespace Operator
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
             this.waitingTuples = new List<OperatorTuple>();
-           
+
             initWorkers();
 
         }
@@ -138,7 +136,7 @@ namespace Operator
             {
                 Console.WriteLine("Enviar " + tuple.Tuple[0]);
                 SendTuple(tuple);
-               
+
             }
 
 
@@ -245,10 +243,17 @@ namespace Operator
                 IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl());
                 opServer.ReceiveTuple(tuple);
 
+                // send tuple to PuppetMaster
                 if (this.Spec.loginLevel.Equals(LoggingLevel.Full))
                 {
-                    //TODO: send tuple to puppetMaster
+                    
+                    IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
+                        typeof(IPuppetMasterProxy),
+                        this.Spec.puppetMasterUrl);
+
+                    obj.ReportTuple(this.Spec.Id, this.Spec.repId, tuple);
                 }
+
             }
             catch (Exception e)
             {

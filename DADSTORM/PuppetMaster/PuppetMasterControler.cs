@@ -5,21 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using OperatorProxys;
 using System.Threading;
-using System.IO;
-using PuppetMasterProxy;
 
 namespace PuppetMaster
 {
-    
     public class PuppetMasterControler
     {
-        protected readonly string logFile = "./log.txt";
         private delegate void RemoteAsyncDelegate();
         private delegate void RemoteAsyncDelegateInt(int ms);
         private ConfigParser parser;
         private Config sysConfig;
         private int wait;
-      
 
 
         public PuppetMasterControler()
@@ -91,7 +86,6 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 asyncServiceCall(op.UnFreeze);
-                this.Writelog(command.Operator.Id + " | "+command.Operator.repId + " | " + command.Type.ToString());
             }
         }
 
@@ -163,34 +157,5 @@ namespace PuppetMaster
             return (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
 
         }
-
-        public void Writelog(string msg)
-        {
-            using (StreamWriter outputFile = new StreamWriter(this.logFile, true))
-            {
-                outputFile.WriteLine(msg);
-            }
-        }
-    }
-
-     public delegate void WriteLog(string msg);
-    public class PuppetMasterService : IPuppetMasterProxy
-    {
-        public static PuppetMasterControler controler;
-        protected readonly string logFile = "./log.txt";
-        private WriteLog del;
-        PuppetMasterService()
-        {
-           
-        }
-
-        void IPuppetMasterProxy.ReportTuple(string OpId, string RepId, OperatorTuple tuple)
-        {
-            string aux = OpId + " | " + RepId + " | " + tuple.ToString();
-            del = new WriteLog(controler.Writelog);
-            del(aux);
-
-        }
-       
     }
 }
