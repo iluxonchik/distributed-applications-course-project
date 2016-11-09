@@ -9,6 +9,7 @@ using System.Threading;
 using PuppetMaster;
 using System.IO;
 using System.Text.RegularExpressions;
+using PuppetMasterProxy;
 
 namespace Operator
 {
@@ -246,7 +247,7 @@ namespace Operator
                 // send tuple to PuppetMaster
                 if (this.Spec.loginLevel.Equals(LoggingLevel.Full))
                 {
-                    
+
                     IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
                         typeof(IPuppetMasterProxy),
                         this.Spec.puppetMasterUrl);

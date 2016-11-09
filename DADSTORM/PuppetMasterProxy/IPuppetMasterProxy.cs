@@ -9,6 +9,6 @@ namespace PuppetMasterProxy
 {
     public interface IPuppetMasterProxy
     {
-         void ReportTuple(string OpId, string RepId, OperatorTuple tuple);
+         void ReportTuple(string OpId, int RepId, OperatorTuple tuple);
     }
 }

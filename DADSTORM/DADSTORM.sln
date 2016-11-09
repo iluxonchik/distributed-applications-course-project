@@ -15,10 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Operator", "Operator\Operat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperatorProxys", "OperatorProxys\OperatorProxys.csproj", "{AA9028D8-FA60-46F2-9398-89F0B6D658F1}"
 EndProject
-
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Operator.Tests", "Operator.Tests\Operator.Tests.csproj", "{18058BB7-BEC8-4D39-B2D5-C76BFFC0DD29}"
 EndProject
-
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestDll", "TestDll\TestDll.csproj", "{30576F1A-816D-4579-BA93-FAE77272E40C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreation", "ProcessCreation\ProcessCreation.csproj", "{18890597-F7BF-47EC-BAF1-5849D327C0CA}"
@@ -28,6 +26,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreation.Tests", "ProcessCreation.Tests\ProcessCreation.Tests.csproj", "{3D4A191C-B76A-42A9-AD75-392139F70C97}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMasterGUI", "PuppetMasterGUI\PuppetMasterGUI.csproj", "{570909E9-9973-4C88-B7DD-2AF0EF823AB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMasterProxy", "PuppetMasterProxy\PuppetMasterProxy.csproj", "{4E5E1B83-6253-4D2F-95A2-5B20C7142678}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +75,10 @@ Global
 		{570909E9-9973-4C88-B7DD-2AF0EF823AB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{570909E9-9973-4C88-B7DD-2AF0EF823AB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{570909E9-9973-4C88-B7DD-2AF0EF823AB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E5E1B83-6253-4D2F-95A2-5B20C7142678}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E5E1B83-6253-4D2F-95A2-5B20C7142678}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E5E1B83-6253-4D2F-95A2-5B20C7142678}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E5E1B83-6253-4D2F-95A2-5B20C7142678}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -90,5 +94,6 @@ Global
 		{E8788CDC-7EAA-4FDA-839F-041C25ECE1B9} = {1F8CFF2B-75ED-4877-931F-49A8566232C7}
 		{3D4A191C-B76A-42A9-AD75-392139F70C97} = {A6C015AB-E12E-42AB-B216-DDB84E9BE43A}
 		{570909E9-9973-4C88-B7DD-2AF0EF823AB8} = {1F8CFF2B-75ED-4877-931F-49A8566232C7}
+		{4E5E1B83-6253-4D2F-95A2-5B20C7142678} = {1F8CFF2B-75ED-4877-931F-49A8566232C7}
 	EndGlobalSection
 EndGlobal
