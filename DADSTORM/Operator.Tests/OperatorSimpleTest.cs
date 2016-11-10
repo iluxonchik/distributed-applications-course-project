@@ -107,7 +107,9 @@ namespace Operator.Tests
         public void TestCustomOperator()
         {
 
-            Operator.CustomOperator co = new CustomOperator(dllName, className, methodName);
+            Operator.CustomOperator co = new CustomOperator(null, className, methodName);
+            // WARNING FOR TEST ONLY
+            co.setDll(dllName);
 
             /* the tuple which content should be result */
             List<string> tupleCompare = new List<string> { "test1", "test2", "test3", "test1", "test2", "test3" };

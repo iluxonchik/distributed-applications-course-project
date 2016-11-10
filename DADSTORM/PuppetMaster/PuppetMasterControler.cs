@@ -213,6 +213,22 @@ namespace PuppetMaster
             }
             this.sysConfig.commands.Enqueue(cmm);
         }
+
+        /*
+         * To crash all operator when closing form
+         */
+        public void CrashAll()
+        {
+            foreach(OperatorSpec opList in this.sysConfig.Operators)
+            {
+                foreach (string url in opList.Addrs)
+                {
+                    IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
+                    asyncServiceCall(op.Crash);
+                }
+            }
+        }
+
     }
 
     public delegate void WriteLog(string msg);

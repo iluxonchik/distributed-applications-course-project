@@ -27,9 +27,9 @@ namespace ConfigTypes
         public OperatorType Type { get; set; }
         public int ReplicationFactor { get; set; }
         public OperatorRouting Routing;
-        public List<string> Addrs = new List<string>();
+        public List<string> Addrs = new List<string>(); // addrs de cada replica do msm operador
         public List<string> Args { get; set; } = new List<string>();
-        public List<OperatorOutput> OutputOperators { get; set; } = new List<OperatorOutput>();
+        public List<OperatorOutput> OutputOperators { get; set; } = new List<OperatorOutput>(); // lista de addrs de output de cada operador
 
         public LoggingLevel loginLevel { get; set; } // pass inside
 

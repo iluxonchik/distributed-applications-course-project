@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OperatorProxys;
 using ConfigTypes;
+using System.IO;
 
 namespace Operator
 {
@@ -29,13 +30,14 @@ namespace Operator
 
         public CustomOperator(OperatorSpec spec,string dll_d, string class_c, string method_m, string myAddr, int repId) : base(spec, myAddr, repId)
         {
-            dll_ = dll_d;
+            dll_ = Directory.GetCurrentDirectory() + "\\" + dll_d;
             class_ = class_c;
             method_ = method_m;
         }
+
         public CustomOperator(string dll_d, string class_c, string method_m) : base()
         {
-            dll_ = dll_d;
+            dll_ = Directory.GetCurrentDirectory() + "\\" + dll_d;
             class_ = class_c;
             method_ = method_m;
         }
@@ -75,6 +77,13 @@ namespace Operator
         {
             generalStatus();
             Console.WriteLine("Dll: " + dll_ + " | Class: " + class_ + " | Method: " + method_);
+        }
+
+
+        // FIX
+        public void setDll(string s)
+        {
+            dll_ = s;
         }
     }
 }
