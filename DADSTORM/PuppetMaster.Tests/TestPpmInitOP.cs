@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ConfigTypes;
+using NUnit.Framework;
 
 namespace PuppetMaster.Tests
 {
@@ -18,9 +19,10 @@ namespace PuppetMaster.Tests
         static Command interval;
         static Command crash;
         static Command status;
-        private string operatorPathExec = BASE_DIR + @"../../../../Operator/bin/Debug/Operator.exe";
-        private string inputFile = RESOURCES_DIR + @"followers.dat";
-
+        protected readonly string BASE_DIR = TestContext.CurrentContext.TestDirectory;
+        protected readonly string RESOURCES_DIR = TestContext.CurrentContext.TestDirectory + "../../../resources/";
+        private static string inputFile = TestContext.CurrentContext.TestDirectory + "../../../resources/followers.dat";
+        
         static void Main()
         {
 
@@ -110,6 +112,50 @@ namespace PuppetMaster.Tests
 
         private static void InitCommands()
         {
+            start = new Command()
+            {
+                Operator = op1,
+                Type = CommandType.Start,
+                RepId = 0,
+                
+
+            };
+            status = new Command()
+            {
+                Operators = new List<OperatorSpec>() { op1, op2, op3 },
+                Type = CommandType.Status,
+
+            };
+            freeze = new Command()
+            {
+                Operator = op1,
+                Type = CommandType.Freeze,
+                RepId = 0,
+            };
+
+            unFreeze = new Command()
+            {
+                Operator = op1,
+                Type = CommandType.Unfreeze,
+                RepId = 0,
+
+            };
+
+            interval = new Command()
+            {
+                Operator = op1,
+                Type = CommandType.Interval,
+                RepId = 0,
+                Op_ms = 100,
+            };
+            crash = new Command()
+            {
+                Operator = op1,
+                Type = CommandType.Unfreeze,
+                RepId = 0,
+                Op_ms = 100,
+            };
+            
 
         }
     }
