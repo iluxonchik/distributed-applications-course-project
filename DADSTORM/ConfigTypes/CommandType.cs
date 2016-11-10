@@ -1,6 +1,8 @@
-﻿namespace ConfigTypes
-{
+﻿using System;
 
+namespace ConfigTypes
+{
+    [Serializable]
    public  enum CommandType
     {
         Start,

@@ -48,5 +48,6 @@ namespace ProcessCreation
                 binaryFormatter.Serialize(stream, opSpec);
             }
         }
+
     }
 }
