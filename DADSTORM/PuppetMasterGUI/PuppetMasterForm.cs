@@ -25,7 +25,7 @@ namespace PuppetMasterGUI
             this.configFileName = null;
 
         }
-        
+
 
         private void txtConfigPath_TextChanged(object sender, EventArgs e)
         {
@@ -43,6 +43,7 @@ namespace PuppetMasterGUI
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
                 this.configFileName = fileDialog.FileName;
+                this.txtConfigPath.Text = fileDialog.FileName;
 
             }
         }
@@ -114,15 +115,9 @@ namespace PuppetMasterGUI
 
         private void Form1_Closing(object sender, FormClosingEventArgs e)
         {
-            try
-            {
-                this.controler.CrashAll();
-
-            } catch (Exception)
-            {
-
-            }
+            this.controler.CrashAll();
+            
         }
-        
+
     }
 }

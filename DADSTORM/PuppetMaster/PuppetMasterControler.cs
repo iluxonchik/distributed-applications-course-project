@@ -219,12 +219,24 @@ namespace PuppetMaster
          */
         public void CrashAll()
         {
-            foreach(OperatorSpec opList in this.sysConfig.Operators)
+            if (this.sysConfig != null)
             {
-                foreach (string url in opList.Addrs)
+                foreach (OperatorSpec opList in this.sysConfig.Operators)
                 {
-                    IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                    asyncServiceCall(op.Crash);
+                    foreach (string url in opList.Addrs)
+                    {
+                        try
+                        {
+                            IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
+                            asyncServiceCall(op.Crash);
+
+                        }
+                        catch (Exception)
+                        {
+                            // FOR NOW NOTHING
+                        }
+
+                    }
                 }
             }
         }
