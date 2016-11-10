@@ -15,7 +15,7 @@ namespace Operator
         /// </summary>
         public int countResult { get; set; }
 
-        public CountOperator(OperatorSpec spec) : base(spec)
+        public CountOperator(OperatorSpec spec, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             countResult = 0;
         }
@@ -29,8 +29,8 @@ namespace Operator
         {
             countResult++;
 
-            /* check value later */
-            return null;
+           
+            return tuple;
         }
 
         public override void Status()

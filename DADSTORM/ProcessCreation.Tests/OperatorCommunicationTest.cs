@@ -41,12 +41,9 @@ namespace ProcessCreation.Tests
                 Id = "OP1",
                 Inputs = expInputs,
                 ReplicationFactor = 1,
-                //Addrs = expAddrs,
-                //Args = expArgs,
                 Routing = expRouting,
                 OutputOperators = expOutput,
-                Type = OperatorType.Dup,
-                Url = "tcp://localHost:9000/op",
+                Type = OperatorType.Dup,          
                 loginLevel = LoggingLevel.Light,
                 semantics = Semantics.AtLeastOnce,
                 //puppetMasterUrl= "tcp://localHost:7000",
@@ -65,7 +62,6 @@ namespace ProcessCreation.Tests
             {
                 Id = "OP2",
                 Inputs = expInputs1,
-                Url = "tcp://localhost:9500/op",
                 loginLevel = LoggingLevel.Light,
                 semantics = Semantics.AtLeastOnce,
                 Type = OperatorType.Dup,
@@ -82,8 +78,7 @@ namespace ProcessCreation.Tests
             op3 = new OperatorSpec()
             {
                 Id = "OP3",
-                Inputs = expInputs2,
-                Url = "tcp://localhost:8086/op",
+                Inputs = expInputs2,         
                 loginLevel = LoggingLevel.Light,
                 semantics = Semantics.AtLeastOnce,
                 Routing = expRouting,
@@ -105,11 +100,9 @@ namespace ProcessCreation.Tests
         public void TestCommunication()
         {
             ProcessCreationProxyImpl pcs = new ProcessCreationProxyImpl(new FileInfo(operatorPathExec));
-            pcs.CreateOperator(op1);
-            pcs.CreateOperator(op2);
-            pcs.CreateOperator(op3);
-
-
+            pcs.CreateOperator(op1, "tcp://localHost:9000/op",0);
+            pcs.CreateOperator(op2, "tcp://localhost:9500/op",0);
+            pcs.CreateOperator(op3, "tcp://localhost:8086/op",0);
 
             //call the services to start de Operator????????
 

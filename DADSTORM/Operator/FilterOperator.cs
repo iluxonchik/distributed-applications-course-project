@@ -25,7 +25,7 @@ namespace Operator
         /// </summary>
         private string compare;
 
-        public FilterOperator(OperatorSpec spec,int id_, string cond_, string compare_) : base(spec)
+        public FilterOperator(OperatorSpec spec,int id_, string cond_, string compare_, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             id = id_;
             cond = cond_;

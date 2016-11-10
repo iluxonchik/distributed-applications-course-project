@@ -11,7 +11,7 @@ namespace ConfigTypes
     {
         private List<OperatorSpec> operators;
         private OperatorSpec opSpec;
-        private int repId;
+        private int repId = -1; // NOTE: any value < 0 corresponds to "null"
         //the time that OP must wait between 2 commands
         //this needs to be int because it is going to be used for Thread.spleep that only acepts ints
         // and we do not like casts.
@@ -67,7 +67,18 @@ namespace ConfigTypes
         {
             get
             {
-                return this.repId;
+                if (repId >= 0)
+                {
+                    return repId;
+                } else
+                {
+                    throw new NullReferrencePropertyException("repId property is null (i.e. < 0)");
+
+                }
+            }
+            set
+            {
+                this.repId = value;
             }
         }
         

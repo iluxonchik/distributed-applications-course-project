@@ -35,14 +35,13 @@ namespace ProcessCreation.Tests
                 Routing = expRouting,
                 OutputOperators = expOutput,
                 Type = OperatorType.Dup,
-                Url = "tcp://localHost:9001/op",
                 loginLevel = LoggingLevel.Light,
                 semantics = Semantics.AtLeastOnce,
                 //puppetMasterUrl= "tcp://localHost:7000",
 
             };
             //--------
-            pcs.CreateOperator(spec);
+            pcs.CreateOperator(spec, "tcp://localHost:9001/op",0);
         }
     }
 }

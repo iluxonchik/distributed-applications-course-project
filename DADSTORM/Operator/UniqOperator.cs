@@ -16,7 +16,7 @@ namespace Operator
         private int id;
         private ISet<string> uniq;
 
-        public UniqOperator(OperatorSpec spec,int id_) : base(spec)
+        public UniqOperator(OperatorSpec spec,int id_, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             this.uniq = new HashSet<string>();
             id = id_;

@@ -21,6 +21,7 @@ namespace PuppetMaster
         private ConfigParser parser;
         private Config sysConfig;
         private int wait;
+        private static readonly string PCS_ADDR_FMT = @"tcp://{0}:10000/ProcessCreation";
 
 
 
@@ -51,9 +52,14 @@ namespace PuppetMaster
         public void CreateOperators(OperatorSpec os)
         {
             // TODO: check if works
-            string addr = new Uri(os.Url).Host;
-            IProcessCreationProxy pcs = (IProcessCreationProxy)Activator.GetObject(typeof(IProcessCreationProxy), "tcp://" + addr + ":10000/ProcessCreation");
-            pcs.CreateOperator(os);
+            for (int i = 0; i < os.Addrs.Count; i++)
+            {
+                var addr = os.Addrs[i];
+                string host = new Uri(addr).Host;
+                IProcessCreationProxy pcs = (IProcessCreationProxy)Activator.GetObject(typeof(IProcessCreationProxy), String.Format(PCS_ADDR_FMT, host));
+                pcs.CreateOperator(os, addr, i);
+
+            }
         }
 
 
@@ -112,7 +118,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 asyncServiceCall(op.UnFreeze);
-                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
             }
         }
 
@@ -120,7 +126,7 @@ namespace PuppetMaster
         {
             IProcessingNodesProxy op = this.CallOpService(command);
             asyncServiceCall(op.Freeze);
-            this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
+            this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
 
         }
 
@@ -130,7 +136,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 asyncServiceCall(op.Crash);
-                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
             }
         }
 
@@ -140,7 +146,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 op.Interval(command.Op_ms);
-                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString() + " interval: " + command.Op_ms);
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.Op_ms);
             }
         }
 
@@ -150,7 +156,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 asyncServiceCall(op.Start);
-                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
             }
         }
 
@@ -160,7 +166,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 op.Status();
-                this.Writelog(command.Operator.Id + " | " + command.Operator.repId + " | " + command.Type.ToString());
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
             }
         }
 
@@ -184,6 +190,7 @@ namespace PuppetMaster
 
         private IProcessingNodesProxy CallOpService(Command command)
         {
+            //TODO: what happens if Operator is dead?
             string url = command.Operator.Addrs[command.RepId];
             return (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
 
@@ -195,6 +202,16 @@ namespace PuppetMaster
             {
                 outputFile.WriteLine(msg);
             }
+        }
+
+        public void AddCommand(Command cmm)
+        {
+            //TODO: do we need to check if the queue exists?
+            if (this.sysConfig.commands == null)
+            {
+                this.sysConfig.commands = new Queue<Command>();
+            }
+            this.sysConfig.commands.Enqueue(cmm);
         }
     }
 

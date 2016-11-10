@@ -10,7 +10,7 @@ namespace Operator
 {
     public class DupOperator : OperatorImpl
     {
-        public DupOperator(OperatorSpec spec) : base(spec)
+        public DupOperator(OperatorSpec spec, string myAddr, int repId) : base(spec, myAddr, repId)
         {
         }
 

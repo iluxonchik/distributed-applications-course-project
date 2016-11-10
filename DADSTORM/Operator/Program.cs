@@ -17,15 +17,18 @@ namespace Operator
     {
         public const string INVD_ARGS = "Invalid arguments";
         public const string ERR_CONF_FILE = "Problem's reading config file, check again";
+        public const string OP_SERVICE = "op";
 
         private static IDictionary props = new Hashtable();
 
         public static void Main(string[] args)
         {
             Console.WriteLine("Operator Program started");
-            if (args.Length == 1)
+            if (args.Length == 3)
             {
                 string fileName = args[0];
+                string myAddr = args[1];
+                int repId = Int32.Parse(args[2]);
 
                 //Console.WriteLine("path for config file " + fileName);
                 FileInfo file = new FileInfo(fileName);
@@ -42,43 +45,42 @@ namespace Operator
                         switch (opSpec.Type)
                         {
                             case OperatorType.Count:
-                                op = new CountOperator(opSpec);
+                                op = new CountOperator(opSpec, myAddr, repId);
                                 Console.WriteLine("new Count Operator");
                                 break;
                             case OperatorType.Custom:
                                 string dll = opSpec.Args[0];
                                 string class_ = opSpec.Args[1];
                                 string method = opSpec.Args[2];
-                                op = new CustomOperator(opSpec, dll, class_, method);
+                                op = new CustomOperator(opSpec, dll, class_, method, myAddr, repId);
                                 Console.WriteLine("new Custom Operator");
                                 break;
                             case OperatorType.Dup:
-                                op = new DupOperator(opSpec);
+                                op = new DupOperator(opSpec, myAddr, repId);
                                 Console.WriteLine("new Dup Operator");
                                 break;
                             case OperatorType.Filter:
                                 int id = Int32.Parse(opSpec.Args[0]);
                                 string cond = opSpec.Args[1];
                                 string value = opSpec.Args[2];
-                                op = new FilterOperator(opSpec, id, cond, value);
+                                op = new FilterOperator(opSpec, id, cond, value, myAddr, repId);
                                 Console.WriteLine("new Filter Operator");
                                 break;
                             case OperatorType.Uniq:
                                 id = Int32.Parse(opSpec.Args[0]);
-                                op = new UniqOperator(opSpec, id);
+                                op = new UniqOperator(opSpec, id, myAddr, repId);
                                 Console.WriteLine("new Uniq Operator");
                                 break;
 
                         }
-
-                        Uri u = new Uri(opSpec.Url);
+                        Uri u = new Uri(myAddr);
                         op.myPort = u.Port;
                         //FIX o illian ia meter o porto no operator sepc???
                         props["port"] = u.Port;
                         //props["timeout"] = 1000; // in milliseconds
                         TcpChannel channel = new TcpChannel(props, null, null);
                         ChannelServices.RegisterChannel(channel, false);
-                        RemotingServices.Marshal(op, "op", typeof(OperatorImpl));
+                        RemotingServices.Marshal(op, OP_SERVICE, typeof(OperatorImpl));
 
                         Console.WriteLine("press entrer to start OP");
                         Console.Read();

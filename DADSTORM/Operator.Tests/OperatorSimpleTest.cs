@@ -65,17 +65,17 @@ namespace Operator.Tests
         public void TestCountOperator()
         {
             Operator.CountOperator co = new CountOperator();
-            Assert.That(Is.Equals(co.Operation(tuple1), null));
+            Assert.That(Is.Equals(co.Operation(tuple1), tuple1));
             Assert.That(Is.Equals(co.countResult, 1));
 
-            Assert.That(Is.Equals(co.Operation(tuple2), null));
+            Assert.That(Is.Equals(co.Operation(tuple2), tuple2));
             Assert.That(Is.Equals(co.countResult, 2));
 
-            Assert.That(Is.Equals(co.Operation(tuple2), null));
+            Assert.That(Is.Equals(co.Operation(tuple2), tuple2));
             Assert.That(Is.Equals(co.countResult, 3));
 
-            Assert.That(Is.Equals(co.Operation(tuple2), null));
-            Assert.That(!Is.Equals(co.countResult, 3));
+            Assert.That(Is.Equals(co.Operation(tuple2), tuple2));
+            Assert.That(Is.Equals(co.countResult, 4));
         }
 
         [Test]
@@ -140,7 +140,7 @@ namespace Operator.Tests
             dop.Start();
 
             //precisamos de garantir que as thread processão os tuplos
-            Thread.Sleep(150);
+            Thread.Sleep(2000);
 
             Assert.That(Is.Equals(dop.waitingTuples.Count, 0));
             //Assert.That(Is.Equals(dop.readyTuples.Count, 3));

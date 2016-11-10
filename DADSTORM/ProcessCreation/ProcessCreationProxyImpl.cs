@@ -18,7 +18,7 @@ namespace ProcessCreation
         {
             this.operatorExecFile = operatorExecFile;
         }
-        public void CreateOperator(OperatorSpec opSpec)
+        public void CreateOperator(OperatorSpec opSpec, string myAddr, int repId)
         {
             //Console.WriteLine("CreateOperator colled");
             Directory.SetCurrentDirectory(operatorExecFile.Directory.FullName);
@@ -37,7 +37,7 @@ namespace ProcessCreation
             }
 
             WriteToBinaryFile<OperatorSpec>(opFile.FullName, opSpec);
-            Process.Start(operatorExecFile.FullName, opFile.FullName);
+            Process.Start(operatorExecFile.FullName, opFile.FullName + String.Format(" {0} {1}", myAddr, repId));
         }
         private static void WriteToBinaryFile<T>(string filePath, T opSpec)
         {

@@ -44,9 +44,9 @@ namespace ProcessCreation.Tests
             List<OperatorInput> inputs = new List<OperatorInput>();
             OperatorInput in_ = new OperatorInput();
             in_.Type = InputType.Operator;
-            spec.Url = "tcp://localhost:9090";
+         
             spec.Inputs = inputs;
-            pcs.CreateOperator(spec);
+            pcs.CreateOperator(spec, "tcp://localhost:9090",0);
             }
         }
     }

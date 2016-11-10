@@ -17,8 +17,12 @@ namespace Operator
     public abstract class OperatorImpl: MarshalByRefObject, IOperatorProxy, IProcessingNodesProxy
     {
 
+        
         //private bool start { get; set; }
         private bool freeze { get; set; }
+
+       protected int RepId { get; set; } // TODO: init from ctor
+       protected string MyAddr { get; set; }
 
         private int interval { get; set; }
 
@@ -49,14 +53,15 @@ namespace Operator
         public const int DEFAULT_NUM_WORKERS = 1;
         public OperatorSpec Spec { get; private set; }
 
-
         protected readonly string BASE_DIR = Directory.GetCurrentDirectory();
         protected readonly string RESOURCES_DIR = Directory.GetCurrentDirectory() + "../../../resources/";
 
-        public OperatorImpl(OperatorSpec spec)
+        public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
             this.Spec = spec;
             InitOp();
+            RepId = repId;
+            MyAddr = myAddr;
             foreach (OperatorInput in_ in this.Spec.Inputs)
             {
 
@@ -131,9 +136,10 @@ namespace Operator
             OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
             tuple = Operation(tuple);
-            Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
+          
             if (tuple != null)
             {
+                Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
                 Console.WriteLine("Enviar " + tuple.Tuple[0]);
                 SendTuple(tuple);
 
@@ -251,15 +257,17 @@ namespace Operator
                         typeof(IPuppetMasterProxy),
                         this.Spec.puppetMasterUrl);
 
-                    obj.ReportTuple(this.Spec.Id, this.Spec.repId, tuple);
+                    obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
                 }
 
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.StackTrace);
                 //TODO: we probably dont want to catch all but for now 
                 // what we do may depends on semantics
+                Console.WriteLine("lastOP");
+           //     Console.WriteLine(e.StackTrace);
+              
             }
         }
 
@@ -272,7 +280,11 @@ namespace Operator
             //routing 
             //FIX for final submition implement routing algoritm
             // for check point it should work
-            string url = "";
+            if (this.Spec.OutputOperators == null)
+                return null;
+            if (this.Spec.OutputOperators[0] == null)
+                return null;
+            string url = null;
 
             switch (this.Spec.Routing.Type)
             {

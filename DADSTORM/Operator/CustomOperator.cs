@@ -27,7 +27,7 @@ namespace Operator
         /// </summary>
         private string method_;
 
-        public CustomOperator(OperatorSpec spec,string dll_d, string class_c, string method_m) : base(spec)
+        public CustomOperator(OperatorSpec spec,string dll_d, string class_c, string method_m, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             dll_ = dll_d;
             class_ = class_c;
