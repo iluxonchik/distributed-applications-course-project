@@ -332,8 +332,6 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Random};
 
-
-
             List<OperatorOutput> expOutput = new List<OperatorOutput>();
             expOutput.Add(new OperatorOutput() { Name = "OP3", Addresses = new List<string> { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" } });
 
@@ -524,6 +522,21 @@ namespace PuppetMaster.Tests
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
+        }
+
+        [Test]
+        public void TestSetPuppetMasterUrl()
+        {
+            const string URL = "The Game - The Documentary(2005)";
+            ConfigParser cp = new ConfigParser(PROVIDED_CONF);
+            Config conf = cp.Parse();
+
+            conf.SetPuppetMasterUrl(URL);
+
+            foreach(var ops in conf.Operators)
+            {
+                Assert.That(Is.Equals(ops.PuppetMasterUrl, URL));
+            }
         }
         #endregion
     }
