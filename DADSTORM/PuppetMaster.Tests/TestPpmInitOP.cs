@@ -48,8 +48,8 @@ namespace PuppetMaster.Tests
                 Routing = expRouting,
                 OutputOperators = expOutput,
                 Type = OperatorType.Dup,
-                loginLevel = LoggingLevel.Light,
-                semantics = Semantics.AtLeastOnce,
+                LoggingLevel = LoggingLevel.Light,
+                Semantics = Semantics.AtLeastOnce,
                 Addrs = expAddrs,
             };
 
@@ -65,8 +65,8 @@ namespace PuppetMaster.Tests
             {
                 Id = "OP2",
                 Inputs = expInputs1,
-                loginLevel = LoggingLevel.Light,
-                semantics = Semantics.AtLeastOnce,
+                LoggingLevel = LoggingLevel.Light,
+                Semantics = Semantics.AtLeastOnce,
                 Type = OperatorType.Dup,
                 OutputOperators = expOutput1,
                 ReplicationFactor = 1,
@@ -84,8 +84,8 @@ namespace PuppetMaster.Tests
             {
                 Id = "OP3",
                 Inputs = expInputs2,
-                loginLevel = LoggingLevel.Light,
-                semantics = Semantics.AtLeastOnce,
+                LoggingLevel = LoggingLevel.Light,
+                Semantics = Semantics.AtLeastOnce,
                 Routing = expRouting,
                 Type = OperatorType.Count,
                 ReplicationFactor = 1,

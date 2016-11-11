@@ -162,7 +162,9 @@ namespace PuppetMaster.Tests
                 Addrs = expAddrs,
                 Args = expArgs,
                 Routing = expRouting,
-                Type = OperatorType.Uniq
+                Type = OperatorType.Uniq,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Full
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
@@ -266,7 +268,9 @@ namespace PuppetMaster.Tests
                 Args = expArgs,
                 Routing = expRouting,
                 OutputOperators = expOutput,
-                Type = OperatorType.Uniq
+                Type = OperatorType.Uniq,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Light
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
@@ -302,7 +306,9 @@ namespace PuppetMaster.Tests
                 Args = expArgs,
                 Routing = expRouting,
                 OutputOperators = expOutput,
-                Type = OperatorType.Filter
+                Type = OperatorType.Filter,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Light
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
@@ -326,8 +332,6 @@ namespace PuppetMaster.Tests
 
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Random};
 
-
-
             List<OperatorOutput> expOutput = new List<OperatorOutput>();
             expOutput.Add(new OperatorOutput() { Name = "OP3", Addresses = new List<string> { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" } });
 
@@ -340,7 +344,9 @@ namespace PuppetMaster.Tests
                 Args = expArgs,
                 Routing = expRouting,
                 OutputOperators = expOutput,
-                Type = OperatorType.Custom
+                Type = OperatorType.Custom,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Light
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
@@ -371,7 +377,9 @@ namespace PuppetMaster.Tests
                 Args = expArgs,
                 Addrs = expAddrs,
                 Routing = expRouting,
-                Type = OperatorType.Count
+                Type = OperatorType.Count,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Light
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
@@ -422,7 +430,9 @@ namespace PuppetMaster.Tests
                 Addrs = expAddrs,
                 Args = expArgs,
                 Routing = expRouting,
-                Type = OperatorType.Dup
+                Type = OperatorType.Dup,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Light
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
@@ -463,7 +473,9 @@ namespace PuppetMaster.Tests
                 Args = expArgs,
                 Routing = expRouting,
                 OutputOperators = expOutput,
-                Type = OperatorType.Filter
+                Type = OperatorType.Filter,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Light
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
@@ -504,10 +516,27 @@ namespace PuppetMaster.Tests
                 Args = expArgs,
                 Routing = expRouting,
                 OutputOperators = expOutput,
-                Type = OperatorType.Custom
+                Type = OperatorType.Custom,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Light
             };
 
             Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
+        }
+
+        [Test]
+        public void TestSetPuppetMasterUrl()
+        {
+            const string URL = "The Game - The Documentary(2005)";
+            ConfigParser cp = new ConfigParser(PROVIDED_CONF);
+            Config conf = cp.Parse();
+
+            conf.SetPuppetMasterUrl(URL);
+
+            foreach(var ops in conf.Operators)
+            {
+                Assert.That(Is.Equals(ops.PuppetMasterUrl, URL));
+            }
         }
         #endregion
     }
