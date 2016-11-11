@@ -19,12 +19,12 @@ namespace Operator
         public UniqOperator(OperatorSpec spec,int id_, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             this.uniq = new HashSet<string>();
-            id = id_;
+            id = id_-1;
         }
         public UniqOperator(int id_) : base()
         {
             this.uniq = new HashSet<string>();
-            id = id_;
+            id = id_-1;
         }
 
         /* WARNING verififcar a operacao é assim: retorna tuplo original 

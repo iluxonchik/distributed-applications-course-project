@@ -102,6 +102,9 @@ namespace PuppetMaster
         }
         public Command Step()
         {
+            if (this.sysConfig.commands.Count == 0)
+                throw new EndOfCommandsException("There are no more Commands");
+
             Command next = this.sysConfig.commands.Dequeue();
             Console.WriteLine("Executing command" + next.Type.ToString());
             this.Run(next);

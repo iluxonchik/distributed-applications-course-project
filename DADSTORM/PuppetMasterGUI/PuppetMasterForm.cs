@@ -50,19 +50,19 @@ namespace PuppetMasterGUI
 
         private void btnLoad_Click(object sender, EventArgs e)
         {
-            try
-            {
+            //try
+            //{
                 if (this.configFileName != null)
-                    this.controler.ParseConfig(this.configFileName);
-            }
-            catch (Exception exp) when (exp is UnknownOperatorTypeException || exp is UnknownOperatorRoutingException)
-            {
-                //TODO: our exception
-            }
-            catch (Exception expAll)
-            {
-                MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                this.controler.ParseConfig(this.configFileName);
+            //}
+            //catch (Exception exp) when (exp is UnknownOperatorTypeException || exp is UnknownOperatorRoutingException)
+            //{
+            //    //TODO: our exception
+            //}
+            //catch (Exception expAll)
+            //{
+            //    MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            //}
         }
 
         private void btnRun_Click(object sender, EventArgs e)
@@ -89,9 +89,14 @@ namespace PuppetMasterGUI
             {
                 cm = this.controler.Step();
             }
-            catch (Exception exp) when (exp is UnknownOperatorTypeException || exp is UnknownOperatorRoutingException)
+            catch (Exception exp1) when (exp1 is UnknownOperatorTypeException || exp1 is UnknownOperatorRoutingException)
             {
                 //TODO: our exception
+                MessageBox.Show("Invalid system Configuration", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (EndOfCommandsException)
+            {
+                MessageBox.Show("No more Commands to run", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception expAll)
             {
@@ -100,15 +105,41 @@ namespace PuppetMasterGUI
 
             if (cm != null)
             {
-                if (cm.Operator.Id == null)
-                    NextCommadTextBox.Text = cm.Type.ToString();
-                else
+
+                try
                 {
-                    if (cm.RepId < 0)
-                        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id;
-                    else
+                    try
+                    {
+
                         NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id + " " + cm.RepId.ToString();
+
+                    }
+                    catch (NullReferrencePropertyException)
+                    {
+
+                        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id;
+                    }
                 }
+                catch (NullReferrencePropertyException)
+                {
+                    NextCommadTextBox.Text = cm.Type.ToString();
+                }
+                //if (cm.Operator.Id == null)
+                //    NextCommadTextBox.Text = cm.Type.ToString();
+                //else
+                //{
+                //    try
+                //    {
+
+                //        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id + " " + cm.RepId.ToString();
+
+                //    }
+                //    catch (NullReferrencePropertyException)
+                //    {
+
+                //        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id;
+                //    }
+                //}
             }
         }
 
@@ -116,7 +147,7 @@ namespace PuppetMasterGUI
         private void Form1_Closing(object sender, FormClosingEventArgs e)
         {
             this.controler.CrashAll();
-            
+
         }
 
     }
