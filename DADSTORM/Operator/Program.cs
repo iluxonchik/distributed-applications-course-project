@@ -82,10 +82,10 @@ namespace Operator
                         ChannelServices.RegisterChannel(channel, false);
                         RemotingServices.Marshal(op, OP_SERVICE, typeof(OperatorImpl));
 
-                        Console.WriteLine("press entrer to start OP");
-                        Console.Read();
-                        op.Start();
-                        Console.WriteLine("Já fiz start");
+                        //Console.WriteLine("press entrer to start OP");
+                        //Console.Read();
+                        //op.Start();
+                        //Console.WriteLine("Já fiz start");
                     }
                     catch (Exception e)
                     {
