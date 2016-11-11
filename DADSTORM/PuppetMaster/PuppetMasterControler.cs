@@ -118,7 +118,7 @@ namespace PuppetMaster
                     this.UnFree(command);
                     break;
                 case CommandType.Wait:
-                    this.wait = command.X_ms;
+                    this.wait = command.MS;
                     break;
 
             }
@@ -157,8 +157,9 @@ namespace PuppetMaster
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                op.Interval(command.X_ms);
-                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.X_ms);
+
+                op.Interval(command.MS);
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.MS);
             }
         }
 

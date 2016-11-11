@@ -120,7 +120,7 @@ namespace PuppetMaster.Tests
             wait1 = new Command()
             {
                 Type = CommandType.Wait,
-                X_ms = 2000,
+                MS = 2000,
             };
             crash1 = new Command()
             {
@@ -144,18 +144,21 @@ namespace PuppetMaster.Tests
                 Operator = op3,
                 Type = CommandType.Interval,
                 RepId = 0,
-                X_ms = 100
+                MS = 100,
+
             };
             wait2 = new Command()
             {
                 Type = CommandType.Wait,
-                X_ms = 2000,
+                MS = 2000,
             };
             crash2 = new Command()
             {
                 Operator = op2,
                 Type = CommandType.Unfreeze,
-                RepId = 0
+                RepId = 0,
+                MS = 100,
+
             };
             crash3 = new Command()
             {

@@ -10,6 +10,12 @@ namespace ConfigTypes
     
     public class Command
     {
+
+        // indicates wether an exception should be thrown when an invalid value is accessed
+        // this is a hack and not the most elegant one, but this is very useful for testing,
+        // because it allows the whole object to be serialized to JSON without any issuses.
+        public bool ThrowExceptionOnInvalidGet { get; set; } = true;
+
         private List<OperatorSpec> operators;
         private OperatorSpec opSpec;
         private int repId = -1; // NOTE: any value < 0 corresponds to "null"
@@ -31,22 +37,46 @@ namespace ConfigTypes
                 {
                     return opSpec;
                 }
-                throw new NullReferrencePropertyException("Operator property is null");
+
+                if (ThrowExceptionOnInvalidGet)
+                {
+
+                    throw new NullReferrencePropertyException("Operator property is null");
+                }
+                else
+                {
+                    return opSpec;
+                }
             }
             set { opSpec = value; }
         }
 
-        public int X_ms
+        public int MS
+
         {
             get
             {
-                if (ms > 0)
+                if (ms >= 0)
                 {
                     return ms;
                 }
-                throw new NullReferrencePropertyException("Milliseconds property is null");
+
+                if (ThrowExceptionOnInvalidGet)
+                {
+                    throw new NullReferrencePropertyException("Milliseconds property is less than zero");
+                } else
+                {
+                    return ms;
+                }
             }
-            set { ms = value; }
+            set
+            {
+                if (ms < 0)
+                {
+                    throw new NullReferrencePropertyException("Milliseconds property is less than zero");
+                }
+                ms = value;
+            }
         }
         //public uint? RepId
         //{
@@ -61,17 +91,23 @@ namespace ConfigTypes
         //    set { repId = value; }
         //}
 
-            public int RepId
+        public int RepId
         {
             get
             {
                 if (repId >= 0)
                 {
                     return repId;
-                } else
+                }
+                else
                 {
-                    throw new NullReferrencePropertyException("repId property is null (i.e. < 0)");
-
+                    if (ThrowExceptionOnInvalidGet)
+                    {
+                        throw new NullReferrencePropertyException("repId property is null (i.e. < 0)");
+                    } else
+                    {
+                        return repId;
+                    }
                 }
             }
             set
@@ -79,7 +115,7 @@ namespace ConfigTypes
                 this.repId = value;
             }
         }
-        
+
 
         // this is an instance of Config.Operators, just make it point to that
         public List<OperatorSpec> Operators
@@ -90,11 +126,16 @@ namespace ConfigTypes
                 {
                     return operators;
                 }
-                throw new NullReferrencePropertyException("Operators property is null");
+                if (ThrowExceptionOnInvalidGet)
+                {
+                    throw new NullReferrencePropertyException("Operators property is null");
+                } else
+                {
+                    return operators;
+                }
             }
             set { operators = value; }
         }
-
 
     }
 }
