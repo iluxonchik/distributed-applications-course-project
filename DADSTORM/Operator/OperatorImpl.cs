@@ -255,12 +255,12 @@ namespace Operator
                 opServer.ReceiveTuple(tuple);
 
                 // send tuple to PuppetMaster
-                if (this.Spec.loginLevel.Equals(LoggingLevel.Full))
+                if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
                 {
 
                     IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
                         typeof(IPuppetMasterProxy),
-                        this.Spec.puppetMasterUrl);
+                        this.Spec.PuppetMasterUrl);
 
                     obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
                 }

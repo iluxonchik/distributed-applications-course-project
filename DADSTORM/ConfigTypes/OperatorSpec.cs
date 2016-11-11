@@ -31,11 +31,11 @@ namespace ConfigTypes
         public List<string> Args { get; set; } = new List<string>();
         public List<OperatorOutput> OutputOperators { get; set; } = new List<OperatorOutput>(); // lista de addrs de output de cada operador
 
-        public LoggingLevel loginLevel { get; set; } // pass inside
+        public LoggingLevel LoggingLevel { get; set; } // pass inside
 
-        public Semantics semantics { get; set; } // pass inside
+        public Semantics Semantics { get; set; } // pass inside
 
-        public string puppetMasterUrl { get; set; } 
+        public string PuppetMasterUrl { get; set; } 
 
         /*
          * incremented every time a new replica int the same OP is created

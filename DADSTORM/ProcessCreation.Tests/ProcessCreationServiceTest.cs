@@ -35,8 +35,8 @@ namespace ProcessCreation.Tests
                 Routing = expRouting,
                 OutputOperators = expOutput,
                 Type = OperatorType.Dup,
-                loginLevel = LoggingLevel.Light,
-                semantics = Semantics.AtLeastOnce,
+                LoggingLevel = LoggingLevel.Light,
+                Semantics = Semantics.AtLeastOnce,
                 //puppetMasterUrl= "tcp://localHost:7000",
 
             };

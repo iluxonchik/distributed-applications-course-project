@@ -27,12 +27,13 @@ namespace PuppetMaster
         private readonly string[] REGEX_LIST = { LOGGING_LVL_REGEX };
 
         public ConfigParser(string confFilePath)
-        {   
+        {
             // TODO: error checking
             confFile = new StreamReader(confFilePath);
             regexParsers = new Action<string, Config>[]{
+                // NOTE: order of invocation important: ParseOperators should be called after ParseLoggingLevel and ParseSemantics
                 (fileContent, config) => ParseLoggingLevel(fileContent, config),
-                (fileContent, config) => ParseSemanthics(fileContent, config),
+                (fileContent, config) => ParseSemantics(fileContent, config),
                 (fileContent, config) => ParseOperators(fileContent, config),
             };
         }
@@ -45,7 +46,7 @@ namespace PuppetMaster
             string fileCont = confFile.ReadToEnd(); // storing the whole file in memory is very efficient :)
             Config conf = new Config();
             foreach (var parser in regexParsers)
-            { 
+            {
                 parser.Invoke(fileCont, conf);
             }
             return conf;
@@ -56,7 +57,7 @@ namespace PuppetMaster
             Match match = Regex.Match(fileContent, LOGGING_LVL_REGEX, RegexOptions.Multiline);
             if (match.Success)
             {
-                switch(match.Groups[1].Value)
+                switch (match.Groups[1].Value)
                 {
                     case "full":
                         conf.LoggingLevel = LoggingLevel.Full;
@@ -68,13 +69,14 @@ namespace PuppetMaster
                         conf.LoggingLevel = LoggingLevel.Light;
                         break;
                 }
-            } else
+            }
+            else
             {
                 conf.LoggingLevel = LoggingLevel.Light;
             }
         }
 
-        private void ParseSemanthics(string fileContent, Config conf)
+        private void ParseSemantics(string fileContent, Config conf)
         {
             Match match = Regex.Match(fileContent, SEMANTICS_REGEX, RegexOptions.Multiline);
             if (match.Success)
@@ -106,7 +108,7 @@ namespace PuppetMaster
             MatchCollection mc = Regex.Matches(fileContent, OPERATOR_REGEX, RegexOptions.Multiline);
             List<OperatorSpec> operators = new List<OperatorSpec>();
             Dictionary<string, List<string>> opToAddrDict = new Dictionary<string, List<string>>();
-            Dictionary<string, OperatorSpec> opnameToOpSpec= new Dictionary<string, OperatorSpec>();
+            Dictionary<string, OperatorSpec> opnameToOpSpec = new Dictionary<string, OperatorSpec>();
             foreach (Match m in mc)
             {
                 OperatorSpec os = new OperatorSpec();
@@ -120,20 +122,24 @@ namespace PuppetMaster
                 os.Routing = ParseOperatorRouting(m);
                 operators.Add(os);
 
+                os.LoggingLevel = conf.LoggingLevel;
+                os.Semantics = conf.Semantics;
+
                 opToAddrDict.Add(os.Id, os.Addrs);
                 opnameToOpSpec.Add(os.Id, os);
             }
+            conf.OPnameToOpSpec = opnameToOpSpec; // TODO: yeah, modifies the config, but a quick fix that works
 
             List<string> addrs; // used in loop below to store temp values
             OperatorSpec opspec; // used in loop below to store temp values
-            foreach(OperatorSpec op in operators)
+            foreach (OperatorSpec op in operators)
             {
-                foreach(var input in op.Inputs)
+                foreach (var input in op.Inputs)
                 {
                     if (input.Type.Equals(InputType.Operator))
                     {
                         if ((addrs = opToAddrDict.Get(input.Name)) != null)
-                        { 
+                        {
                             input.Addresses.AddRange(opToAddrDict[input.Name]);
                         }
 
@@ -175,17 +181,19 @@ namespace PuppetMaster
             }
 
             // it's better to stop than assume some default values
-            throw new UnknownOperatorTypeException(String.Format("{0} is an invalid value for OPERATOR_SPEC", m.Groups["op_spec"]));        }
+            throw new UnknownOperatorTypeException(String.Format("{0} is an invalid value for OPERATOR_SPEC", m.Groups["op_spec"]));
+        }
+
 
         private OperatorRouting ParseOperatorRouting(Match m)
         {
             string routingValue = m.Groups["routing"].Value;
             OperatorRouting or = new OperatorRouting();
-            switch(routingValue)
+            switch (routingValue)
             {
                 case "random":
-                     or.Type = RoutingType.Random;
-                     break;
+                    or.Type = RoutingType.Random;
+                    break;
                 case "primary":
                     or.Type = RoutingType.Primary;
                     break;
@@ -204,7 +212,8 @@ namespace PuppetMaster
             {
                 or.Type = RoutingType.Hashing;
                 or.Arg = Int32.Parse(m.Groups["arg"].Value);
-            } else
+            }
+            else
             {
                 throw new UnknownOperatorRoutingException();
             }
@@ -221,7 +230,8 @@ namespace PuppetMaster
             {
                 argList.Add(m.Groups["op_uniq_field"].Value);
             }
-            else if (opType == OperatorType.Custom) {
+            else if (opType == OperatorType.Custom)
+            {
                 argList.Add(m.Groups["op_custom_dll"].Value);
                 argList.Add(m.Groups["op_custom_class"].Value);
                 argList.Add(m.Groups["op_custom_method"].Value);
@@ -249,11 +259,11 @@ namespace PuppetMaster
         private List<OperatorInput> ParseOperatorInputList(Match m)
         {
             List<OperatorInput> opInputList = new List<OperatorInput>();
-            
-            foreach(Capture c in m.Groups["input_op"].Captures)
+
+            foreach (Capture c in m.Groups["input_op"].Captures)
             {
                 OperatorInput opInput = new OperatorInput();
-                opInput.Name =  c.Value;
+                opInput.Name = c.Value;
                 // lab teacher said that we can assume that an input op is a file if it contains a "."
                 opInput.Type = opInput.Name.Contains(".") ? InputType.File : InputType.Operator;
                 opInputList.Add(opInput);

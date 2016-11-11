@@ -2,8 +2,8 @@
 
 namespace ConfigTypes
 {
-    
-   public  enum CommandType
+
+    public enum CommandType
     {
         Start,
         Interval,
