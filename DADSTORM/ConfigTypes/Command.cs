@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ConfigTypes
 {
-    [Serializable]
+    
     public class Command
     {
         private List<OperatorSpec> operators;

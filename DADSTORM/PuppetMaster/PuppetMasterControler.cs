@@ -70,7 +70,6 @@ namespace PuppetMaster
                 string host = new Uri(addr).Host;
                 IProcessCreationProxy pcs = (IProcessCreationProxy)Activator.GetObject(typeof(IProcessCreationProxy), String.Format(PCS_ADDR_FMT, host));
                 pcs.CreateOperator(os, addr, i);
-
             }
         }
 

@@ -2,7 +2,7 @@
 
 namespace ConfigTypes
 {
-    [Serializable]
+    
    public  enum CommandType
     {
         Start,

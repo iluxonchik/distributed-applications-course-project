@@ -4,15 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ConfigTypes;
-using NUnit.Framework;
+using System.IO;
 
 namespace PuppetMaster.Tests
 {
     public class TestPpmInitOP
     {
-        protected readonly string BASE_DIR = TestContext.CurrentContext.TestDirectory;
-        protected readonly string RESOURCES_DIR = TestContext.CurrentContext.TestDirectory + "../../../resources/";
-        private static string inputFile = TestContext.CurrentContext.TestDirectory + "../../../resources/followers.dat";
+        
+        private static string inputFile = Directory.GetCurrentDirectory() + "../../../resources/followers.dat";
 
         static void Main()
         {
@@ -199,8 +198,8 @@ namespace PuppetMaster.Tests
             Console.WriteLine("press enter for ppm call pcs and create OP");
             Console.Read();
             Console.WriteLine("pressed enter");
-            ppm.CreateOperator(op1);
-
+            ppm.CreateOperators();
+            Console.Read();
             foreach (Command c in aux)
             {
                 Console.WriteLine("press enter to run command");
