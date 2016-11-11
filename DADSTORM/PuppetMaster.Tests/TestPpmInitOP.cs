@@ -146,14 +146,14 @@ namespace PuppetMaster.Tests
                 Operator = op1,
                 Type = CommandType.Interval,
                 RepId = 0,
-                Op_ms = 100,
+                MS = 100,
             };
             crash = new Command()
             {
                 Operator = op1,
                 Type = CommandType.Unfreeze,
                 RepId = 0,
-                Op_ms = 100,
+                MS = 100,
             };
             
 

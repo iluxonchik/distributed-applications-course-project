@@ -202,7 +202,7 @@ namespace PuppetMaster.Tests
         [TearDown]
         public void TearDown()
         {
-            // Empty
+            provided_config.Close();
         }
 
         #region ProvidedConfig Tests
@@ -225,8 +225,6 @@ namespace PuppetMaster.Tests
             Config conf = cp.Parse();
 
             Assert.That(Is.Equals(conf.Semantics, Semantics.AtMostOnce));
-
-            
         }
 
         [Test]
