@@ -31,8 +31,9 @@ namespace PuppetMaster
             // TODO: error checking
             confFile = new StreamReader(confFilePath);
             regexParsers = new Action<string, Config>[]{
+                // NOTE: order of invocation important: ParseOperators should be called after ParseLoggingLevel and ParseSemantics
                 (fileContent, config) => ParseLoggingLevel(fileContent, config),
-                (fileContent, config) => ParseSemanthics(fileContent, config),
+                (fileContent, config) => ParseSemantics(fileContent, config),
                 (fileContent, config) => ParseOperators(fileContent, config),
             };
         }
@@ -75,7 +76,7 @@ namespace PuppetMaster
             }
         }
 
-        private void ParseSemanthics(string fileContent, Config conf)
+        private void ParseSemantics(string fileContent, Config conf)
         {
             Match match = Regex.Match(fileContent, SEMANTICS_REGEX, RegexOptions.Multiline);
             if (match.Success)
@@ -120,6 +121,9 @@ namespace PuppetMaster
                 os.Args = ParseOperatorArgList(m, os.Type); // yeah, dependency from ParseOperatorType, but simplifies things
                 os.Routing = ParseOperatorRouting(m);
                 operators.Add(os);
+
+                os.LoggingLevel = conf.LoggingLevel;
+                os.Semantics = conf.Semantics;
 
                 opToAddrDict.Add(os.Id, os.Addrs);
                 opnameToOpSpec.Add(os.Id, os);
