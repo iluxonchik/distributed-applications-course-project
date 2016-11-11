@@ -9,6 +9,8 @@ using System.IO;
 using PuppetMasterProxy;
 using ConfigTypes;
 using ProcessCreationProxy;
+using System.Net;
+using System.Net.Sockets;
 
 namespace PuppetMaster
 {
@@ -19,8 +21,10 @@ namespace PuppetMaster
         private delegate void RemoteAsyncDelegate();
         private delegate void RemoteAsyncDelegateInt(int ms);
         private ConfigParser parser;
+        private CommandParser cmmParser;
         private Config sysConfig;
         private int wait;
+        private string puppetMasterUrl;
         private static readonly string PCS_ADDR_FMT = @"tcp://{0}:10000/ProcessCreation";
 
 
@@ -29,7 +33,9 @@ namespace PuppetMaster
         {
             this.parser = null;
             this.sysConfig = null;
+            this.cmmParser = null;
             this.wait = 0;
+            this.puppetMasterUrl = this.GetLocalIPAddress();
 
         }
 
@@ -39,15 +45,29 @@ namespace PuppetMaster
             this.parser = null;
             this.sysConfig = sysconf;
             this.wait = 0;
+            this.puppetMasterUrl = this.GetLocalIPAddress();
 
         }
-
-
-
+        private string GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+            throw new Exception("Local IP Address Not Found!");
+        }
         public void ParseConfig(String fileName)
         {
             this.parser = new ConfigParser(fileName);
             this.sysConfig = this.parser.Parse();
+            this.cmmParser = new CommandParser(fileName, this.sysConfig);
+            this.sysConfig.commands=this.cmmParser.Parse();
+            this.sysConfig.SetPuppetMasterUrl(this.puppetMasterUrl);
+            CreateOperators();
         }
 
         public void CreateOperators()
@@ -55,8 +75,6 @@ namespace PuppetMaster
             foreach (OperatorSpec os in this.sysConfig.Operators)
             {
                 CreateOperator(os);
-
-
             }
         }
 
@@ -72,14 +90,14 @@ namespace PuppetMaster
                 pcs.CreateOperator(os, addr, i);
             }
         }
-
-
-
         public void RunAll()
         {
-            while (this.sysConfig.commands.Count > 0)
+            if (this.sysConfig.commands != null)
             {
-                this.Run(this.sysConfig.commands.Dequeue());
+                while (this.sysConfig.commands.Count > 0)
+                {
+                    this.Run(this.sysConfig.commands.Dequeue());
+                }
             }
         }
         public Command Step()
@@ -118,7 +136,7 @@ namespace PuppetMaster
                     this.UnFree(command);
                     break;
                 case CommandType.Wait:
-                    this.wait = command.X_ms;
+                    this.wait = command.MS;
                     break;
 
             }
@@ -129,28 +147,30 @@ namespace PuppetMaster
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                asyncServiceCall(op.UnFreeze);
+                asyncServiceCall(op.UnFreeze, url);
                 this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
             }
         }
 
         private void Freeze(Command command)
         {
-            IProcessingNodesProxy op = this.CallOpService(command);
-            asyncServiceCall(op.Freeze);
-            this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
-
+            foreach (string url in command.Operator.Addrs)
+            {
+                IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
+                asyncServiceCall(op.Freeze, url);
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
+            }
         }
 
         private void Crash(Command command)
         {
-            foreach (string url in command.Operator.Addrs)
-            {
-                IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                asyncServiceCall(op.Crash);
-                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
-                this.sysConfig.Operators.Remove(command.Operator);
-            }
+
+            string url = command.Operator.Addrs[command.RepId];
+            IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
+            asyncServiceCall(op.Crash, url);
+            removeRep(url);
+
+            this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
         }
 
         private void Interval(Command command)
@@ -158,60 +178,71 @@ namespace PuppetMaster
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                asyncServiceCall(op.Interval, command.X_ms);
-                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.X_ms);
+                asyncServiceCall(op.Interval, command.MS, url);
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.MS);
             }
         }
 
         private void Start(Command command)
         {
+            int counter =0;
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                asyncServiceCall(op.Start);
-                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
+                asyncServiceCall(op.Start, url);
+                this.Writelog(command.Operator.Id + " | " + counter++ + " | " + command.Type.ToString());
             }
         }
 
         private void Status(Command command)
         {
-            foreach (OperatorSpec opSpec in command.Operators)
+            foreach (OperatorSpec opSpec in this.sysConfig.Operators)
             {
-                
                 foreach (string url in opSpec.Addrs)
                 {
                     IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                    asyncServiceCall(op.Status);
+                    asyncServiceCall(op.Status, url);
+                    //TODO:
                     //this.Writelog(opSpec.Id + " | " + opSpec.RepId + " | " + command.Type.ToString());
                     this.Writelog(opSpec.Id + " | " + url + " | " + command.Type.ToString());
                 }
             }
         }
 
-        private void asyncServiceCall(Action<int> method, int ms)
+        private void asyncServiceCall(Action<int> method, int ms, string url)
         {
-
-            RemoteAsyncDelegateInt RemoteDel = new RemoteAsyncDelegateInt(method);
-            // Call delegate to remote method
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(ms, null, null);
-            // Wait for the end of the call and then explictly call EndInvoke
-            RemAr.AsyncWaitHandle.WaitOne();
+            try
+            {
+                RemoteAsyncDelegateInt RemoteDel = new RemoteAsyncDelegateInt(method);
+                // Call delegate to remote method
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(ms, null, null);
+                // Wait for the end of the call and then explictly call EndInvoke
+                RemAr.AsyncWaitHandle.WaitOne();
+            }
+            catch (Exception)
+            {
+                //TODO put this in a constante
+                this.Writelog("Unable to contact Process (Read Next Line to know which one)");
+                removeRep(url);
+            }
         }
-        private void asyncServiceCall(Action method)
+        private void asyncServiceCall(Action method, string url)
         {
-            RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(method);
-            // Call delegate to remote method
-            IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
-            // Wait for the end of the call and then explictly call EndInvoke
-            RemAr.AsyncWaitHandle.WaitOne();
-        }
+            try
+            {
+                RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(method);
+                // Call delegate to remote method
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
+                // Wait for the end of the call and then explictly call EndInvoke
+                RemAr.AsyncWaitHandle.WaitOne();
+            }
+            catch (Exception)
+            {
+                //TODO
+                this.Writelog("Unable to contact Process (Read Next Line to know which one)");
+                removeRep(url);
 
-        private IProcessingNodesProxy CallOpService(Command command)
-        {
-            //TODO: what happens if Operator is dead?
-            string url = command.Operator.Addrs[command.RepId];
-            return (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-
+            }
         }
 
         public void Writelog(string msg)
@@ -246,7 +277,7 @@ namespace PuppetMaster
                         try
                         {
                             IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                            asyncServiceCall(op.Crash);
+                            asyncServiceCall(op.Crash, url);
 
                         }
                         catch (Exception)
@@ -257,6 +288,35 @@ namespace PuppetMaster
                     }
                 }
             }
+        }
+        //TODO test method
+        public void removeUrl(string url)
+        {
+            removeRep(url);
+        }
+
+        private void removeRep(string url)
+        {
+            List<OperatorSpec> aux = new List<OperatorSpec>(this.sysConfig.Operators);
+            bool b = false;
+            foreach (OperatorSpec op in aux)
+            {
+                foreach (string u in op.Addrs)
+                {
+                    if (u.Equals(url))
+                    {
+                        op.Addrs.Remove(url);
+                        b = true;
+                        break;
+                    }
+
+                }
+                if (b)
+                    break;
+            }
+            this.sysConfig.Operators = aux;
+
+
         }
 
     }

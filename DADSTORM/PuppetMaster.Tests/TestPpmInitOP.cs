@@ -48,8 +48,8 @@ namespace PuppetMaster.Tests
                 Routing = expRouting,
                 OutputOperators = expOutput,
                 Type = OperatorType.Dup,
-                loginLevel = LoggingLevel.Light,
-                semantics = Semantics.AtLeastOnce,
+                LoggingLevel = LoggingLevel.Light,
+                Semantics = Semantics.AtLeastOnce,
                 Addrs = expAddrs,
             };
 
@@ -65,8 +65,8 @@ namespace PuppetMaster.Tests
             {
                 Id = "OP2",
                 Inputs = expInputs1,
-                loginLevel = LoggingLevel.Light,
-                semantics = Semantics.AtLeastOnce,
+                LoggingLevel = LoggingLevel.Light,
+                Semantics = Semantics.AtLeastOnce,
                 Type = OperatorType.Dup,
                 OutputOperators = expOutput1,
                 ReplicationFactor = 1,
@@ -84,8 +84,8 @@ namespace PuppetMaster.Tests
             {
                 Id = "OP3",
                 Inputs = expInputs2,
-                loginLevel = LoggingLevel.Light,
-                semantics = Semantics.AtLeastOnce,
+                LoggingLevel = LoggingLevel.Light,
+                Semantics = Semantics.AtLeastOnce,
                 Routing = expRouting,
                 Type = OperatorType.Count,
                 ReplicationFactor = 1,
@@ -120,7 +120,7 @@ namespace PuppetMaster.Tests
             wait1 = new Command()
             {
                 Type = CommandType.Wait,
-                X_ms = 2000,
+                MS = 2000,
             };
             crash1 = new Command()
             {
@@ -144,12 +144,12 @@ namespace PuppetMaster.Tests
                 Operator = op3,
                 Type = CommandType.Interval,
                 RepId = 0,
-                X_ms = 100
+                MS = 100
             };
             wait2 = new Command()
             {
                 Type = CommandType.Wait,
-                X_ms = 2000,
+                MS = 2000,
             };
             crash2 = new Command()
             {

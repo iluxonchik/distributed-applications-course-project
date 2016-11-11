@@ -27,14 +27,14 @@ namespace Operator
 
         public FilterOperator(OperatorSpec spec,int id_, string cond_, string compare_, string myAddr, int repId) : base(spec, myAddr, repId)
         {
-            id = id_;
+            id = id_ - 1;
             cond = cond_;
             compare = compare_;
         }
 
         public FilterOperator(int id_, string cond_, string compare_) : base()
         {
-            id = id_;
+            id = id_ - 1;
             cond = cond_;
             compare = compare_;
         }
@@ -42,7 +42,8 @@ namespace Operator
         
         public override OperatorTuple Operation(OperatorTuple tuple)
         {
-            switch(cond)
+
+            switch (cond)
             {
                 case "<":
                         if (String.Compare(tuple.Tuple[id], compare) < 0)

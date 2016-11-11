@@ -37,6 +37,7 @@ namespace Operator
 
                     try
                     {
+                        Console.WriteLine("config file name"+file.FullName);
                         OperatorSpec opSpec = ReadFromBinaryFile<OperatorSpec>(file.FullName);
                         OperatorImpl op = null;
                         //Console.WriteLine("Parametros do config");

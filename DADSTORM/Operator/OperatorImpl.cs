@@ -54,7 +54,7 @@ namespace Operator
         public OperatorSpec Spec { get; private set; }
 
         protected readonly string BASE_DIR = Directory.GetCurrentDirectory();
-        protected readonly string RESOURCES_DIR = Directory.GetCurrentDirectory() + "../../../resources/";
+        protected readonly string RESOURCES_DIR = Directory.GetCurrentDirectory() + @"\resources\";
 
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
@@ -67,12 +67,13 @@ namespace Operator
 
                 if (in_.Type.Equals(InputType.File))
                 {
-
-                    this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(in_.Name)));
+                    Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
+                    this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR+in_.Name)));
 
 
                 }
             }
+            PrintWaitingTuples();
 
 
 
@@ -136,6 +137,7 @@ namespace Operator
             OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
             tuple = Operation(tuple);
+            Console.WriteLine("Tuple threadted");
 
             if (tuple != null)
             {
@@ -156,7 +158,7 @@ namespace Operator
         public void Start()
         {
             //this.start = true;
-
+            Console.WriteLine("Thread start");
             for (int i = 0; i < this.num_workers; i++)
                 this.workers[i].Start();
         }
@@ -332,7 +334,7 @@ namespace Operator
         /// </summary>
         public abstract OperatorTuple Operation(OperatorTuple tuple);
 
-        private void PrintWaitingThreads()
+        private void PrintWaitingTuples()
         {
             Console.WriteLine(this.waitingTuples.ToString());
             foreach (OperatorTuple tuple in this.waitingTuples)
