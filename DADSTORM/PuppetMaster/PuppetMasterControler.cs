@@ -33,6 +33,17 @@ namespace PuppetMaster
 
         }
 
+        //TODO remove this constructer
+        public PuppetMasterControler(Config sysconf)
+        {
+            this.parser = null;
+            this.sysConfig = sysconf;
+            this.wait = 0;
+
+        }
+
+
+
         public void ParseConfig(String fileName)
         {
             this.parser = new ConfigParser(fileName);
@@ -43,22 +54,22 @@ namespace PuppetMaster
         {
             foreach (OperatorSpec os in this.sysConfig.Operators)
             {
-                CreateOperators(os);
+                CreateOperator(os);
 
 
             }
         }
 
-        public void CreateOperators(OperatorSpec os)
+        public void CreateOperator(OperatorSpec os)
         {
             // TODO: check if works
             for (int i = 0; i < os.Addrs.Count; i++)
             {
-                var addr = os.Addrs[i];
+                Console.WriteLine("CReate OP");
+                string addr = os.Addrs[i];
                 string host = new Uri(addr).Host;
                 IProcessCreationProxy pcs = (IProcessCreationProxy)Activator.GetObject(typeof(IProcessCreationProxy), String.Format(PCS_ADDR_FMT, host));
                 pcs.CreateOperator(os, addr, i);
-
             }
         }
 
@@ -74,6 +85,7 @@ namespace PuppetMaster
         public Command Step()
         {
             Command next = this.sysConfig.commands.Dequeue();
+            Console.WriteLine("Executing command" + next.Type.ToString());
             this.Run(next);
             return next;
         }
@@ -106,7 +118,7 @@ namespace PuppetMaster
                     this.UnFree(command);
                     break;
                 case CommandType.Wait:
-                    this.wait = command.wait;
+                    this.wait = command.X_ms;
                     break;
 
             }
@@ -145,8 +157,8 @@ namespace PuppetMaster
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                op.Interval(command.Op_ms);
-                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.Op_ms);
+                op.Interval(command.X_ms);
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.X_ms);
             }
         }
 

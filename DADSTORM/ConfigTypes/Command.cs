@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace ConfigTypes
 {
+    
     public class Command
     {
         private List<OperatorSpec> operators;
@@ -16,9 +17,6 @@ namespace ConfigTypes
         //this needs to be int because it is going to be used for Thread.spleep that only acepts ints
         // and we do not like casts.
         private int ms;
-
-        //the time that puppetMaster must wait between 2 commands
-        public int wait { get; }
 
         public CommandType Type { get; set; }
 
@@ -38,7 +36,7 @@ namespace ConfigTypes
             set { opSpec = value; }
         }
 
-        public int Op_ms
+        public int X_ms
         {
             get
             {

@@ -10,5 +10,7 @@ namespace ProcessCreationProxy
     public interface IProcessCreationProxy
     {
        void CreateOperator(OperatorSpec opSpec, string myAddr, int replicaId);
+
+      
     }
 }

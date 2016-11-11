@@ -4,58 +4,41 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ConfigTypes;
-using NUnit.Framework;
+using System.IO;
 
 namespace PuppetMaster.Tests
 {
     public class TestPpmInitOP
     {
-       static  OperatorSpec op1;
-        static OperatorSpec op2;
-        static OperatorSpec op3;
-        static Command start;
-        static Command freeze;
-        static Command unFreeze;
-        static Command interval;
-        static Command crash;
-        static Command status;
-        protected readonly string BASE_DIR = TestContext.CurrentContext.TestDirectory;
-        protected readonly string RESOURCES_DIR = TestContext.CurrentContext.TestDirectory + "../../../resources/";
-        private static string inputFile = TestContext.CurrentContext.TestDirectory + "../../../resources/followers.dat";
         
+        private static string inputFile = Directory.GetCurrentDirectory() + "../../../resources/followers.dat";
+
         static void Main()
         {
+            OperatorSpec op1;
+            OperatorSpec op2;
+            OperatorSpec op3;
+            Command start1;
+            Command freeze2;
+            Command start2;
+            Command unFreeze2;
+            Command wait1;
+            Command crash1;
+            Command status;
+            Command start3;
+            Command interval3;
+            Command wait2;
+            Command crash2;
+            Command crash3;
 
-
-            initOP();
-            
-            PuppetMasterControler ppm = new PuppetMasterControler();
-            
-            Console.WriteLine("press enter for ppm call pcs and create OP");
-            Console.Read();
-            Console.WriteLine("pressed enter");
-            ppm.CreateOperators(op1);
-            Console.WriteLine("press enter for ppm call pcs and create OP");
-            Console.Read();
-            Console.WriteLine("pressed enter");
-        }
-
-        private static void initOP()
-        {// Empty
             // Build expected operator
             List<OperatorInput> expInputs = new List<OperatorInput>();
             expInputs.Add(new OperatorInput() { Name = inputFile, Type = InputType.File, Addresses = new List<string> { "tcp://localhost:11000/op" } });
-
-            //List<string> expAddrs = new List<string>();
-            //expAddrs.AddRange(new string[] { "tcp://1.2.3.8:11000/op", "tcp://1.2.3.9:11000/op" });
-
-            //List<string> expArgs = new List<string>();
-            //expArgs.Add("1");
-
+            List<string> expAddrs = new List<string>();
+            expAddrs.AddRange(new string[] { "tcp://localhost:9500/op" });
             OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Primary };
-
             List<OperatorOutput> expOutput = new List<OperatorOutput>();
-            expOutput.Add(new OperatorOutput() { Name = "OP2", Addresses = new List<string>() { "tcp://localhost:9500/op" } });
+            expOutput.Add(new OperatorOutput() { Name = "OP2", Addresses = new List<string>() { "tcp://localhost:8086/op" } });
 
             op1 = new OperatorSpec()
             {
@@ -67,17 +50,16 @@ namespace PuppetMaster.Tests
                 Type = OperatorType.Dup,
                 loginLevel = LoggingLevel.Light,
                 semantics = Semantics.AtLeastOnce,
-                //puppetMasterUrl= "tcp://localHost:7000",
-
-
+                Addrs = expAddrs,
             };
 
             //OP 2--------------------
+            List<string> expAddrs2 = new List<string>();
+            expAddrs2.AddRange(new string[] { "tcp://localhost:8086/op" });
             List<OperatorInput> expInputs1 = new List<OperatorInput>();
-            expInputs1.Add(new OperatorInput() { Name = "OP1", Type = InputType.Operator, Addresses = new List<string> { "tcp://localHost:9000/op" } });
+            expInputs1.Add(new OperatorInput() { Name = "OP1", Type = InputType.Operator, Addresses = new List<string> { "tcp://localHost:9500/op" } });
             List<OperatorOutput> expOutput1 = new List<OperatorOutput>();
-            expOutput1.Add(new OperatorOutput() { Name = "OP3", Addresses = new List<string>() { "tcp://localhost:8086/op" } });
-
+            expOutput1.Add(new OperatorOutput() { Name = "OP3", Addresses = new List<string>() { "tcp://localhost:9550/op" } });
 
             op2 = new OperatorSpec()
             {
@@ -88,13 +70,15 @@ namespace PuppetMaster.Tests
                 Type = OperatorType.Dup,
                 OutputOperators = expOutput1,
                 ReplicationFactor = 1,
-                Routing = expRouting
-
+                Routing = expRouting,
+                Addrs = expAddrs2,
             };
 
             //OP 3--------------------
+            List<string> expAddrs3 = new List<string>();
+            expAddrs3.AddRange(new string[] { "tcp://localhost:9550/op" });
             List<OperatorInput> expInputs2 = new List<OperatorInput>();
-            expInputs2.Add(new OperatorInput() { Name = "OP2", Type = InputType.Operator, Addresses = new List<string> { "tcp://localhost:9500/op" } });
+            expInputs2.Add(new OperatorInput() { Name = "OP2", Type = InputType.Operator, Addresses = new List<string> { "tcp://localhost:8086/op" } });
 
             op3 = new OperatorSpec()
             {
@@ -104,59 +88,127 @@ namespace PuppetMaster.Tests
                 semantics = Semantics.AtLeastOnce,
                 Routing = expRouting,
                 Type = OperatorType.Count,
-                ReplicationFactor = 1
+                ReplicationFactor = 1,
+                Addrs = expAddrs3
             };
+            
 
-
-        }
-
-        private static void InitCommands()
-        {
-            start = new Command()
+            start1 = new Command()
             {
                 Operator = op1,
                 Type = CommandType.Start,
                 RepId = 0,
-                
-
+            };
+            freeze2 = new Command()
+            {
+                Operator = op2,
+                Type = CommandType.Freeze,
+                RepId = 0,
+            };
+            start2 = new Command()
+            {
+                Operator = op2,
+                Type = CommandType.Start,
+                RepId = 0,
+            };
+            unFreeze2 = new Command()
+            {
+                Operator = op2,
+                Type = CommandType.Unfreeze,
+                RepId = 0,
+            };
+            wait1 = new Command()
+            {
+                Type = CommandType.Wait,
+                X_ms = 2000,
+            };
+            crash1 = new Command()
+            {
+                Operator = op1,
+                Type = CommandType.Unfreeze,
+                RepId = 0
             };
             status = new Command()
             {
                 Operators = new List<OperatorSpec>() { op1, op2, op3 },
                 Type = CommandType.Status,
-
             };
-            freeze = new Command()
+            start3 = new Command()
             {
-                Operator = op1,
-                Type = CommandType.Freeze,
+                Operator = op3,
+                Type = CommandType.Start,
                 RepId = 0,
             };
-
-            unFreeze = new Command()
+            interval3 = new Command()
             {
-                Operator = op1,
-                Type = CommandType.Unfreeze,
-                RepId = 0,
-
-            };
-
-            interval = new Command()
-            {
-                Operator = op1,
+                Operator = op3,
                 Type = CommandType.Interval,
                 RepId = 0,
-                Op_ms = 100,
+                X_ms = 100
             };
-            crash = new Command()
+            wait2 = new Command()
             {
-                Operator = op1,
+                Type = CommandType.Wait,
+                X_ms = 2000,
+            };
+            crash2 = new Command()
+            {
+                Operator = op2,
                 Type = CommandType.Unfreeze,
-                RepId = 0,
-                Op_ms = 100,
+                RepId = 0
+            };
+            crash3 = new Command()
+            {
+                Operator = op3,
+                Type = CommandType.Unfreeze,
+                RepId = 0
+            };
+
+            List<Command> aux = new List<Command>()
+            {
+                start1,
+             freeze2,
+             start2,
+             unFreeze2,
+             wait1 ,
+             crash1 ,
+             status ,
+             start3 ,
+             interval3 ,
+             wait2 ,
+             crash2 ,
+             crash3
             };
             
+            Config config = new Config()
+            {
+                LoggingLevel = LoggingLevel.Light,
+                Operators = new List<OperatorSpec>() { op1, op2, op3 },
+                Semantics = Semantics.AtLeastOnce,
+                commands = new Queue<Command>()
+            };
+            PuppetMasterControler ppm = new PuppetMasterControler(config);
+            
+            foreach (Command c in aux)
+            {
+                ppm.AddCommand(c);
+            }
+            
+
+            Console.WriteLine("press enter for ppm call pcs and create OP");
+            Console.Read();
+            Console.WriteLine("pressed enter");
+            ppm.CreateOperators();
+            Console.Read();
+            foreach (Command c in aux)
+            {
+                Console.WriteLine("press enter to run command");
+                Console.Read();
+                ppm.Step();
+                Console.WriteLine("pressed enter");
+            }
 
         }
+
     }
 }
