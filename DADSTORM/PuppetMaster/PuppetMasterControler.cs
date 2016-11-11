@@ -145,8 +145,8 @@ namespace PuppetMaster
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                op.Interval(command.Op_ms);
-                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.Op_ms);
+                op.Interval(command.MS);
+                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.MS);
             }
         }
 

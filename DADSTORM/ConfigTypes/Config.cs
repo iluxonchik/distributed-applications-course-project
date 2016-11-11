@@ -12,5 +12,6 @@ namespace ConfigTypes
         public List<OperatorSpec> Operators { get; set; }
         public Semantics Semantics { get; set; }
         public Queue<Command> commands { get; set; }
+        public Dictionary<string, OperatorSpec> OPnameToOpSpec { get; set; } // needed by CommandParser
     }
 }
