@@ -14,17 +14,17 @@ using PuppetMasterProxy;
 namespace Operator
 {
 
-    public abstract class OperatorImpl: MarshalByRefObject, IOperatorProxy, IProcessingNodesProxy
+    public abstract class OperatorImpl : MarshalByRefObject, IOperatorProxy, IProcessingNodesProxy
     {
 
-        
+
         //private bool start { get; set; }
-        private bool freeze { get; set; }
+        private volatile bool freeze;
 
-       protected int RepId { get; set; } // TODO: init from ctor
-       protected string MyAddr { get; set; }
+        protected int RepId { get; set; } // TODO: init from ctor
+        protected string MyAddr { get; set; }
 
-        private int interval { get; set; }
+        private volatile int interval;
 
         public int myPort { get; set; }
 
@@ -123,7 +123,7 @@ namespace Operator
                     if (!this.freeze)
                     {
                         if (this.interval > 0)
-                            Monitor.Wait(this.interval);
+                           Thread.Sleep(this.interval);
                         TreatTuple();
                         Monitor.PulseAll(this);
                     }
@@ -136,7 +136,7 @@ namespace Operator
             OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
             tuple = Operation(tuple);
-          
+
             if (tuple != null)
             {
                 Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
@@ -163,8 +163,13 @@ namespace Operator
 
         public void Interval(int x_ms)
         {
-            if (x_ms > 0)
-                this.interval = x_ms;
+           
+                if (x_ms > 0)
+                {
+
+                    this.interval = x_ms;
+                }
+           
         }
 
         /// <summary>
@@ -266,8 +271,8 @@ namespace Operator
                 //TODO: we probably dont want to catch all but for now 
                 // what we do may depends on semantics
                 Console.WriteLine("lastOP");
-           //     Console.WriteLine(e.StackTrace);
-              
+                //     Console.WriteLine(e.StackTrace);
+
             }
         }
 

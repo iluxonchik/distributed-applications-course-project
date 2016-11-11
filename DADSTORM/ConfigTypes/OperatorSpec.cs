@@ -62,6 +62,15 @@ namespace ConfigTypes
             return String.Format("ID: {0}, Type: {1}, Inputs: [{2}]", Id, Type, inputs);
         }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is OperatorSpec) {
+            
+                OperatorSpec aux = (OperatorSpec)obj;
+                return aux.Id.Equals(this.Id);
+            }
+            return false;
+        }
         /*
          * public Operator GetInstance() {
          *      // This is where polymorphism would've made the code cleaner

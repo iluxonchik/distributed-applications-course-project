@@ -125,7 +125,7 @@ namespace PuppetMaster.Tests
             crash1 = new Command()
             {
                 Operator = op1,
-                Type = CommandType.Unfreeze,
+                Type = CommandType.Crash,
                 RepId = 0
             };
             status = new Command()
@@ -154,13 +154,13 @@ namespace PuppetMaster.Tests
             crash2 = new Command()
             {
                 Operator = op2,
-                Type = CommandType.Unfreeze,
+                Type = CommandType.Crash,
                 RepId = 0
             };
             crash3 = new Command()
             {
                 Operator = op3,
-                Type = CommandType.Unfreeze,
+                Type = CommandType.Crash,
                 RepId = 0
             };
 
@@ -173,8 +173,10 @@ namespace PuppetMaster.Tests
              wait1 ,
              crash1 ,
              status ,
+              interval3 ,
              start3 ,
-             interval3 ,
+            
+              status,
              wait2 ,
              crash2 ,
              crash3
@@ -200,9 +202,11 @@ namespace PuppetMaster.Tests
             Console.WriteLine("pressed enter");
             ppm.CreateOperators();
             Console.Read();
+            Console.Read();
             foreach (Command c in aux)
             {
                 Console.WriteLine("press enter to run command");
+                Console.Read();
                 Console.Read();
                 ppm.Step();
                 Console.WriteLine("pressed enter");
