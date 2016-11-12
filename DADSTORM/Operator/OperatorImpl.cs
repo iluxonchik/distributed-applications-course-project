@@ -56,6 +56,9 @@ namespace Operator
         protected readonly string BASE_DIR = Directory.GetCurrentDirectory();
         protected readonly string RESOURCES_DIR = Directory.GetCurrentDirectory() + @"\resources\";
 
+        private static readonly string PM_ADDR_FMT = @"tcp://{0}:10001/PuppetMaster";
+
+
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
             this.Spec = spec;
@@ -73,6 +76,7 @@ namespace Operator
 
                 }
             }
+            
             PrintWaitingTuples();
 
 
@@ -259,12 +263,15 @@ namespace Operator
                 // send tuple to PuppetMaster
                 if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
                 {
-
+                    /*
+                     *  TODO create the Pm service to send the seen tuples when status is invoked
+                     *  
                     IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
                         typeof(IPuppetMasterProxy),
-                        this.Spec.PuppetMasterUrl);
+                        String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
 
                     obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
+                    */
                 }
 
             }

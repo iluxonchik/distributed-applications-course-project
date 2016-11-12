@@ -90,16 +90,16 @@ namespace Operator.Tests
         [Test]
         public void TestFilterOperator()
         {
-            Operator.FilterOperator fo = new FilterOperator(0, "<", "text2");
+            Operator.FilterOperator fo = new FilterOperator(1, "<", "text2");
             Assert.That(Is.Equals(fo.Operation(tuple1), tuple1));
 
-            fo = new FilterOperator(3, "=", "Ola");
+            fo = new FilterOperator(4, "=", "Ola");
             Assert.That(Is.Equals(fo.Operation(tuple1), tuple1));
 
-            fo = new FilterOperator(3, ">", "ola");
+            fo = new FilterOperator(4, ">", "ola");
             Assert.That(Is.Equals(fo.Operation(tuple1), tuple1));
 
-            fo = new FilterOperator(1, "=", "test2");
+            fo = new FilterOperator(2, "=", "test2");
             Assert.That(Is.Equals(fo.Operation(tuple2), null));
         }
 

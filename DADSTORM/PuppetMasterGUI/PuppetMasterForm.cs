@@ -52,8 +52,33 @@ namespace PuppetMasterGUI
         {
             //try
             //{
-                if (this.configFileName != null)
+            if (this.configFileName != null)
+            {
                 this.controler.ParseConfig(this.configFileName);
+                
+                Command cm = controler.getTopCommand();
+                if(cm != null)
+                {
+                    try
+                    {
+                        try
+                        {
+
+                            NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id + " " + cm.RepId.ToString();
+
+                        }
+                        catch (NullReferrencePropertyException)
+                        {
+
+                            NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id;
+                        }
+                    }
+                    catch (NullReferrencePropertyException)
+                    {
+                        NextCommadTextBox.Text = cm.Type.ToString();
+                    }
+                }
+            }
             //}
             //catch (Exception exp) when (exp is UnknownOperatorTypeException || exp is UnknownOperatorRoutingException)
             //{
@@ -63,7 +88,7 @@ namespace PuppetMasterGUI
             //{
             //    MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             //}
-        }
+            }
 
         private void btnRun_Click(object sender, EventArgs e)
         {
@@ -103,7 +128,10 @@ namespace PuppetMasterGUI
                 MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            if (cm != null)
+
+            /* get the next command before executing it and show */
+            Command next = controler.getTopCommand();
+            if (next != null)
             {
 
                 try
@@ -111,19 +139,20 @@ namespace PuppetMasterGUI
                     try
                     {
 
-                        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id + " " + cm.RepId.ToString();
+                        NextCommadTextBox.Text = next.Type.ToString() + " " + next.Operator.Id + " " + next.RepId.ToString();
 
                     }
                     catch (NullReferrencePropertyException)
                     {
 
-                        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id;
+                        NextCommadTextBox.Text = next.Type.ToString() + " " + next.Operator.Id;
                     }
                 }
                 catch (NullReferrencePropertyException)
                 {
-                    NextCommadTextBox.Text = cm.Type.ToString();
+                    NextCommadTextBox.Text = next.Type.ToString();
                 }
+
                 //if (cm.Operator.Id == null)
                 //    NextCommadTextBox.Text = cm.Type.ToString();
                 //else

@@ -111,6 +111,17 @@ namespace PuppetMaster
             return next;
         }
 
+        /* to be used with Step button to show the next command before is executed */
+        public Command getTopCommand()
+        {
+            if (this.sysConfig.commands.Count != 0)
+            {
+                Queue<Command> temp = new Queue<Command>(this.sysConfig.commands);
+                return temp.Dequeue();
+            }
+            return null;
+        }
+
 
         private void Run(Command command)
         {
