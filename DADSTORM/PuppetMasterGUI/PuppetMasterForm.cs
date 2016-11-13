@@ -10,6 +10,10 @@ using System.Windows.Forms;
 using PuppetMaster;
 using ConfigTypes;
 using ConfigTypes.Exceptions;
+using System.Collections;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting;
 
 namespace PuppetMasterGUI
 {
@@ -17,6 +21,7 @@ namespace PuppetMasterGUI
     {
         private PuppetMasterControler controler;
         private string configFileName;
+
 
         public frmPuppetMaster()
         {
@@ -55,9 +60,9 @@ namespace PuppetMasterGUI
             if (this.configFileName != null)
             {
                 this.controler.ParseConfig(this.configFileName);
-                
+
                 Command cm = controler.getTopCommand();
-                if(cm != null)
+                if (cm != null)
                 {
                     try
                     {
@@ -88,7 +93,7 @@ namespace PuppetMasterGUI
             //{
             //    MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             //}
-            }
+        }
 
         private void btnRun_Click(object sender, EventArgs e)
         {

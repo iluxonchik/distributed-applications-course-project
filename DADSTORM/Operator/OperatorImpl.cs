@@ -70,14 +70,14 @@ namespace Operator
 
                 if (in_.Type.Equals(InputType.File))
                 {
-                    Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
+                    //Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
                     this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR+in_.Name)));
 
 
                 }
             }
             
-            PrintWaitingTuples();
+            //PrintWaitingTuples();
 
 
 
@@ -141,12 +141,12 @@ namespace Operator
             OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
             tuple = Operation(tuple);
-            Console.WriteLine("Tuple threadted");
+            //Console.WriteLine("Tuple threadted");
 
             if (tuple != null)
             {
-                Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
-                Console.WriteLine("Enviar " + tuple.Tuple[0]);
+                //Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
+                //Console.WriteLine("Enviar " + tuple.Tuple[0]);
                 SendTuple(tuple);
 
             }
@@ -161,8 +161,6 @@ namespace Operator
         /// </summary>
         public void Start()
         {
-            //this.start = true;
-            Console.WriteLine("Thread start");
             for (int i = 0; i < this.num_workers; i++)
                 this.workers[i].Start();
         }
@@ -263,15 +261,13 @@ namespace Operator
                 // send tuple to PuppetMaster
                 if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
                 {
-                    /*
-                     *  TODO create the Pm service to send the seen tuples when status is invoked
-                     *  
+                    //Console.WriteLine("send tuples to ppm");
                     IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
                         typeof(IPuppetMasterProxy),
                         String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
 
                     obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
-                    */
+                   
                 }
 
             }

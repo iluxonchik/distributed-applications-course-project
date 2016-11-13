@@ -12,6 +12,11 @@ using ProcessCreationProxy;
 using System.Net;
 using System.Net.Sockets;
 
+using System.Collections;
+using System.Runtime.Remoting.Channels.Tcp;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Remoting;
+
 namespace PuppetMaster
 {
 
@@ -27,27 +32,43 @@ namespace PuppetMaster
         private string puppetMasterUrl;
         private static readonly string PCS_ADDR_FMT = @"tcp://{0}:10000/ProcessCreation";
 
+        private static readonly string PPM_SERVICE = "PuppetMaster";
+        private static readonly int PORT = 10001;
+        private static IDictionary props = new Hashtable();
 
 
         public PuppetMasterControler()
         {
-            this.parser = null;
             this.sysConfig = null;
             this.cmmParser = null;
+            this.parser = null;   
+          
             this.wait = 0;
             this.puppetMasterUrl = this.GetLocalIPAddress();
+            props["port"] = PORT;
+            TcpChannel channel = new TcpChannel(props, null, null);
+            ChannelServices.RegisterChannel(channel, false);
+            PuppetMasterService.controler = this;
+            PuppetMasterService service = new PuppetMasterService();
+            RemotingServices.Marshal(service, PPM_SERVICE, typeof(PuppetMasterService));
+            //RemotingConfiguration.RegisterWellKnownServiceType(typeof(PuppetMasterService), PPM_SERVICE, WellKnownObjectMode.Singleton);
+
 
         }
 
         //TODO remove this constructer
         public PuppetMasterControler(Config sysconf)
         {
-            this.parser = null;
             this.sysConfig = sysconf;
+            this.parser = null;
+            
             this.wait = 0;
             this.puppetMasterUrl = this.GetLocalIPAddress();
 
         }
+       
+
+
         private string GetLocalIPAddress()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
@@ -80,10 +101,9 @@ namespace PuppetMaster
 
         public void CreateOperator(OperatorSpec os)
         {
-            // TODO: check if works
             for (int i = 0; i < os.Addrs.Count; i++)
             {
-                Console.WriteLine("CReate OP");
+                Console.WriteLine("Create OP");
                 string addr = os.Addrs[i];
                 string host = new Uri(addr).Host;
                 IProcessCreationProxy pcs = (IProcessCreationProxy)Activator.GetObject(typeof(IProcessCreationProxy), String.Format(PCS_ADDR_FMT, host));
@@ -106,7 +126,7 @@ namespace PuppetMaster
                 throw new EndOfCommandsException("There are no more Commands");
 
             Command next = this.sysConfig.commands.Dequeue();
-            Console.WriteLine("Executing command" + next.Type.ToString());
+            //Console.WriteLine("Executing command" + next.Type.ToString());
             this.Run(next);
             return next;
         }
@@ -340,7 +360,6 @@ namespace PuppetMaster
     public class PuppetMasterService : MarshalByRefObject, IPuppetMasterProxy
     {
         public static PuppetMasterControler controler;
-        protected readonly string logFile = "./log.txt";
         private WriteLog del;
 
 
