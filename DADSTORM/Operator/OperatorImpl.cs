@@ -67,21 +67,15 @@ namespace Operator
             MyAddr = myAddr;
             foreach (OperatorInput in_ in this.Spec.Inputs)
             {
-
                 if (in_.Type.Equals(InputType.File))
                 {
-                    Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
+                    // Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
                     this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR+in_.Name)));
-
-
                 }
             }
-            
-            PrintWaitingTuples();
-
-
-
+            //PrintWaitingTuples();
         }
+
         public OperatorImpl()
         {
             //empty because of unit tests, we did not had acess to oP spec
@@ -143,15 +137,18 @@ namespace Operator
             //TODO tratar LIst
             List<OperatorTuple> list = Operation(tuple);
 
-           foreach(OperatorTuple op in list)
+           foreach(OperatorTuple tupleX in list)
             {
-                Console.WriteLine("Tuple threadted");
-
-                if (tuple != null)
+                //Console.WriteLine("Tuple threated");
+                
+                //TODO NULL not needed??
+                if (tupleX != null)
                 {
-                    Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
-                    Console.WriteLine("Enviar " + tuple.Tuple[0]);
-                    SendTuple(tuple);
+                    //Console.WriteLine("Enviar: ");
+                    //foreach (string a in tupleX.Tuple)
+                    //    Console.Write(a + " | ");
+                    //Console.WriteLine();
+                    SendTuple(tupleX);
 
                 }
             }
@@ -165,7 +162,7 @@ namespace Operator
         /// </summary>
         public void Start()
         {
-            Console.WriteLine("Started");
+            //Console.WriteLine("Started");
             for (int i = 0; i < this.num_workers; i++)
                 this.workers[i].Start();
         }
@@ -225,12 +222,11 @@ namespace Operator
             {
                 lock (this)
                 {
-                    Console.WriteLine("receive tuple");
-                    foreach (string s in tuple.Tuple)
-                    {
-                        Console.Write(s + " ");
-                    }
-                    Console.WriteLine();
+                    //Console.WriteLine("receive tuple");
+                    //foreach (string s in tuple.Tuple)
+                    //    Console.Write(s + " ");
+                    //Console.WriteLine();
+
                     this.waitingTuples.Add(tuple);
                     Monitor.PulseAll(this);
                     break;
@@ -261,7 +257,7 @@ namespace Operator
             try
             {
                 //Console.WriteLine("Send tuples to " + this.GetOutUrl());
-                IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl());
+                IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl(tuple));
                 opServer.ReceiveTuple(tuple);
 
                 // send tuple to PuppetMaster
@@ -291,7 +287,7 @@ namespace Operator
         /// for the frist delivery return index=0 because that is the only availale
         /// </summary>
         /// <returns></returns>
-        private string GetOutUrl()
+        private string GetOutUrl(OperatorTuple tuple)
         {
             //routing 
             //FIX for final submition implement routing algoritm
@@ -312,11 +308,33 @@ namespace Operator
                     url = this.Spec.OutputOperators[0].Addresses[idx];
                     break;
                 case RoutingType.Hashing:
+                    url = this.Spec.OutputOperators[0].Addresses[CalculateHash(tuple.Tuple[this.Spec.Routing.Arg], this.Spec.OutputOperators[0].Addresses.Count)];
                     // some hard cheat is going to happen here....
                     break;
             }
 
             return url;
+        }
+        //escolher uma , aminha de preferenci
+        public  int CalculateHash(string key, int d)
+        {
+            int hashCode = 0;
+
+            for (int i = 0; i < key.Length; i++)
+            {
+                hashCode = key[i] << i;
+            }
+            hashCode ^= hashCode << 127;
+            hashCode = hashCode % d;
+
+
+            return hashCode;
+        }
+        public  int hash(String key, int length)
+        {
+            int res = 0;
+            res = Math.Abs(key.GetHashCode() % length);
+            return res;
         }
 
         public List<OperatorTuple> ReadTuplesFromFile(FileInfo filePath)

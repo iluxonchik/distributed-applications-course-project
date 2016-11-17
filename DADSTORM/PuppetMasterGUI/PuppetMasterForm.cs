@@ -109,6 +109,7 @@ namespace PuppetMasterGUI
             {
                 MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            NextCommadTextBox.Text = "";
         }
 
         private void btnStep_Click(object sender, EventArgs e)
@@ -138,18 +139,14 @@ namespace PuppetMasterGUI
             Command next = controler.getTopCommand();
             if (next != null)
             {
-
                 try
                 {
                     try
                     {
-
                         NextCommadTextBox.Text = next.Type.ToString() + " " + next.Operator.Id + " " + next.RepId.ToString();
-
                     }
                     catch (NullReferrencePropertyException)
                     {
-
                         NextCommadTextBox.Text = next.Type.ToString() + " " + next.Operator.Id;
                     }
                 }
@@ -157,24 +154,9 @@ namespace PuppetMasterGUI
                 {
                     NextCommadTextBox.Text = next.Type.ToString();
                 }
-
-                //if (cm.Operator.Id == null)
-                //    NextCommadTextBox.Text = cm.Type.ToString();
-                //else
-                //{
-                //    try
-                //    {
-
-                //        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id + " " + cm.RepId.ToString();
-
-                //    }
-                //    catch (NullReferrencePropertyException)
-                //    {
-
-                //        NextCommadTextBox.Text = cm.Type.ToString() + " " + cm.Operator.Id;
-                //    }
-                //}
             }
+            else
+                NextCommadTextBox.Text ="";
         }
 
 
@@ -183,6 +165,5 @@ namespace PuppetMasterGUI
             this.controler.CrashAll();
 
         }
-
     }
 }

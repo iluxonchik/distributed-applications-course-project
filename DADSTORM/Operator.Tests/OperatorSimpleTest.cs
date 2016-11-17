@@ -53,28 +53,28 @@ namespace Operator.Tests
         public void TestUniqueOperator()
         {
             Operator.UniqOperator uo = new UniqOperator(2);
-            Assert.That(Is.Equals(uo.Operation(tuple1), tuple1));
-
-            Assert.That(Is.Equals(uo.Operation(tuple3), null));
+            Assert.That(Is.Equals(uo.Operation(tuple1)[0], tuple1));
+           
+            Assert.That(Is.Equals(uo.Operation(tuple3).Count, 0));
 
             uo = new UniqOperator(1);
-            Assert.That(Is.Equals(uo.Operation(tuple2), tuple2));
+            Assert.That(Is.Equals(uo.Operation(tuple2)[0], tuple2));
         }
 
         [Test]
         public void TestCountOperator()
         {
             Operator.CountOperator co = new CountOperator();
-            Assert.That(Is.Equals(co.Operation(tuple1), tuple1));
+            Assert.That(Is.Equals(co.Operation(tuple1)[0], tuple1));
             Assert.That(Is.Equals(co.countResult, 1));
 
-            Assert.That(Is.Equals(co.Operation(tuple2), tuple2));
+            Assert.That(Is.Equals(co.Operation(tuple2)[0], tuple2));
             Assert.That(Is.Equals(co.countResult, 2));
 
-            Assert.That(Is.Equals(co.Operation(tuple2), tuple2));
+            Assert.That(Is.Equals(co.Operation(tuple2)[0], tuple2));
             Assert.That(Is.Equals(co.countResult, 3));
 
-            Assert.That(Is.Equals(co.Operation(tuple2), tuple2));
+            Assert.That(Is.Equals(co.Operation(tuple2)[0], tuple2));
             Assert.That(Is.Equals(co.countResult, 4));
         }
 
@@ -82,25 +82,26 @@ namespace Operator.Tests
         public void TestDupOperator()
         {
             Operator.DupOperator dop = new DupOperator();
-            Assert.That(Is.Equals(dop.Operation(tuple1), tuple1));
+            Assert.That(Is.Equals(dop.Operation(tuple1)[0], tuple1));
 
-            Assert.That(Is.Equals(dop.Operation(tuple2), tuple2));
+            Assert.That(Is.Equals(dop.Operation(tuple2)[0], tuple2));
         }
 
         [Test]
         public void TestFilterOperator()
         {
             Operator.FilterOperator fo = new FilterOperator(1, "<", "text2");
-            Assert.That(Is.Equals(fo.Operation(tuple1), tuple1));
+            Assert.That(Is.Equals(fo.Operation(tuple1)[0], tuple1));
 
             fo = new FilterOperator(4, "=", "Ola");
-            Assert.That(Is.Equals(fo.Operation(tuple1), tuple1));
+            Assert.That(Is.Equals(fo.Operation(tuple1)[0], tuple1));
 
             fo = new FilterOperator(4, ">", "ola");
-            Assert.That(Is.Equals(fo.Operation(tuple1), tuple1));
+            Assert.That(Is.Equals(fo.Operation(tuple1)[0], tuple1));
 
+            //vai dar merda
             fo = new FilterOperator(2, "=", "test2");
-            Assert.That(Is.Equals(fo.Operation(tuple2), null));
+            Assert.That(Is.Equals(fo.Operation(tuple2).Count, 0));
         }
 
         [Test]
@@ -115,7 +116,8 @@ namespace Operator.Tests
             List<string> tupleCompare = new List<string> { "test1", "test2", "test3", "test1", "test2", "test3" };
 
             /* invoke operation */
-            OperatorTuple res = co.Operation(tuple3);
+            List<OperatorTuple> aux = co.Operation(tuple3);
+            OperatorTuple res = aux[0];
 
             /* the size of both tuples must be equal */
             Assert.That(Is.Equals(res.Tuple.Count, tupleCompare.Count));
@@ -229,6 +231,16 @@ namespace Operator.Tests
             Assert.That(Is.Equals(tuples[12].Tuple[2], "user5"));
             Assert.That(Is.Equals(tuples[12].Tuple[3], "user10"));
            
+        }
+
+        [Test]
+        public void TestHash()
+        {
+            DupOperator dop = new DupOperator();
+            int length = 5;
+            Assert.That(Is.Equals(dop.CalculateHash("user11",length), dop.CalculateHash("user11", length)));
+
+            
         }
     }
 

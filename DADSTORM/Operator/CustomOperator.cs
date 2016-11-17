@@ -56,23 +56,28 @@ namespace Operator
                     var methodInfo = type.GetMethod(method_, new Type[] { typeof(List<string>) });
                     if (methodInfo != null)
                     {
+                        
                         var o = Activator.CreateInstance(type);
                         object[] params_ = new object[] { tuple.Tuple };
                         //TODO: return List of tuples, cada tuple é uma lista de string
                         var result = methodInfo.Invoke(o, params_);
 
-                        /*
-                        List<string> res = new List<string>(((IEnumerable)result).Cast<object>()
-                                         .Select(x => x.ToString())
-                                         .ToArray());
-                        */
-                        
                         List<OperatorTuple> theRes = new List<OperatorTuple>();
 
                         foreach (List<string> t in ((IEnumerable)result))
                         {
                             theRes.Add(new OperatorTuple(t));
                         }
+                        /*
+                        Console.Write("FOR tuple: ");
+                        foreach (string a in tuple.Tuple)
+                            Console.Write(a + " ");
+                        Console.WriteLine("DLL returned:");
+                        foreach(OperatorTuple op in theRes)
+                            foreach (string a in op.Tuple
+                                Console.Write(a + " ");
+                            Console.WriteLine();
+                         */
 
                         return theRes;
                     }
