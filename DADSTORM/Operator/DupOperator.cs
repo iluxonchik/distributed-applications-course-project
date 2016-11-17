@@ -17,9 +17,11 @@ namespace Operator
         public DupOperator() : base()
         {
         }
-        public override OperatorTuple Operation(OperatorTuple tuple)
+        public override List<OperatorTuple> Operation(OperatorTuple tuple)
         {
-            return tuple;
+            List<OperatorTuple> list = new List<OperatorTuple>();
+            list.Add(tuple);
+            return list;
         }
 
         public override void Status()

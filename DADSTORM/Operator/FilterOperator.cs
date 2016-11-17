@@ -40,33 +40,40 @@ namespace Operator
         }
         
         
-        public override OperatorTuple Operation(OperatorTuple tuple)
+        public override List<OperatorTuple> Operation(OperatorTuple tuple)
         {
-
+            List<OperatorTuple> list = new List<OperatorTuple>();
+            
             switch (cond)
             {
                 case "<":
                         if (String.Compare(tuple.Tuple[id], compare) < 0)
                         {
-                            return tuple;
-                        }
+                        list.Add(tuple);
+                        return list;
+
+
+                    }
                     break;
                 case "=":
                     if (String.Compare(tuple.Tuple[id], compare) == 0)
                     {
-                        return tuple;
+                        list.Add(tuple);
+                        return list;
+
                     }
                     break;
                 case ">":
                     if (String.Compare(tuple.Tuple[id], compare) > 0)
                     {
-                        return tuple;
+                        list.Add(tuple);
+                        return list;
                     }
                     break;
                 default:
-                    return tuple; /* SHOULD NEVER HAPPEN */
+                    return list; /* SHOULD NEVER HAPPEN */
             }
-            return null;
+            return list;
         }
 
         public override void Status()

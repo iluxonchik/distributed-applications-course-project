@@ -35,6 +35,8 @@ namespace PuppetMaster
         private static readonly string PPM_SERVICE = "PuppetMaster";
         private static readonly int PORT = 10001;
         private static IDictionary props = new Hashtable();
+        private static Mutex mux = new Mutex();
+
 
 
         public PuppetMasterControler()
@@ -213,7 +215,7 @@ namespace PuppetMaster
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 asyncServiceCall(op.Interval, command.MS, url);
-                this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString() + " interval: " + command.MS);
+                this.Writelog(command.Operator.Id + " | " +url+ " | " + command.Type.ToString() + " interval: " + command.MS);
             }
         }
 
@@ -281,10 +283,14 @@ namespace PuppetMaster
 
         public void Writelog(string msg)
         {
-            using (StreamWriter outputFile = new StreamWriter(this.logFile, true))
-            {
-                outputFile.WriteLine(msg);
-            }
+            mux.WaitOne();
+                using (StreamWriter outputFile = new StreamWriter(this.logFile, true))
+                {
+                    outputFile.WriteLine(msg);
+                }
+            mux.ReleaseMutex();
+            
+            
         }
 
         public void AddCommand(Command cmm)
@@ -365,6 +371,7 @@ namespace PuppetMaster
 
         void IPuppetMasterProxy.ReportTuple(string OpId, int RepId, OperatorTuple tuple)
         {
+            
             string aux = OpId + " | " + RepId + " | " + tuple.ToString();
             del = new WriteLog(controler.Writelog);
             del(aux);

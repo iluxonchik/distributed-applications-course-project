@@ -31,18 +31,18 @@ namespace Operator
         public CustomOperator(OperatorSpec spec,string dll_d, string class_c, string method_m, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             dll_ = Directory.GetCurrentDirectory() + "\\" + dll_d;
-            class_ = class_c;
+            class_ = "LibCustomOperator." + class_c;
             method_ = method_m;
         }
 
         public CustomOperator(string dll_d, string class_c, string method_m) : base()
         {
             dll_ = Directory.GetCurrentDirectory() + "\\" + dll_d;
-            class_ = class_c;
+            class_ = "LibCustomOperator." + class_c;
             method_ = method_m;
         }
 
-        public override OperatorTuple Operation(OperatorTuple tuple)
+        public override List<OperatorTuple> Operation(OperatorTuple tuple)
         {
 
             Assembly assembly = Assembly.LoadFile(dll_);
@@ -58,19 +58,34 @@ namespace Operator
                     {
                         var o = Activator.CreateInstance(type);
                         object[] params_ = new object[] { tuple.Tuple };
+                        //TODO: return List of tuples, cada tuple é uma lista de string
                         var result = methodInfo.Invoke(o, params_);
 
-                        /* maybe to heavy or expensive ? */
+                        /*
                         List<string> res = new List<string>(((IEnumerable)result).Cast<object>()
                                          .Select(x => x.ToString())
                                          .ToArray());
+                        */
+                        
+                        List<OperatorTuple> theRes = new List<OperatorTuple>();
 
-                        return new OperatorTuple(res);
+                        foreach (List<string> t in ((IEnumerable)result))
+                        {
+                            theRes.Add(new OperatorTuple(t));
+                        }
+
+                        return theRes;
                     }
+                    else
+                        throw new NullReferenceException("No method " + method_ + "END");
                 }
+                else
+                    throw new NullReferenceException("No type " + class_ + "END");
             }
+            else
+                throw new NullReferenceException("No assembly");
 
-            return null;
+            //return  new List<OperatorTuple>();
         }
 
         public override void Status()

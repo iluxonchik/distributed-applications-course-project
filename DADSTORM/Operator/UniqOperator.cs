@@ -30,14 +30,18 @@ namespace Operator
         /* WARNING verififcar a operacao é assim: retorna tuplo original 
          * se n repetir a string em + nenhuma posicao
          */
-        public override OperatorTuple Operation(OperatorTuple tuple)
+        public override List<OperatorTuple>  Operation(OperatorTuple tuple)
         {
+            List<OperatorTuple> list = new List<OperatorTuple>();
+
             if (!this.uniq.Contains(tuple.Tuple[id]))
             {
+
                 uniq.Add(tuple.Tuple[id]);
-                return tuple;
+                list.Add(tuple);
+                return list;
             }
-            return null;
+            return list;
             
         }
 

@@ -25,12 +25,13 @@ namespace Operator
             countResult = 0;
         }
 
-        public override OperatorTuple Operation(OperatorTuple tuple)
+        public override List<OperatorTuple> Operation(OperatorTuple tuple)
         {
             countResult++;
 
-           
-            return tuple;
+            List<OperatorTuple> list = new List<OperatorTuple>();
+            list.Add(tuple);
+            return list;
         }
 
         public override void Status()

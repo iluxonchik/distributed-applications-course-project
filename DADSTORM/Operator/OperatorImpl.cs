@@ -70,14 +70,14 @@ namespace Operator
 
                 if (in_.Type.Equals(InputType.File))
                 {
-                    //Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
+                    Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
                     this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR+in_.Name)));
 
 
                 }
             }
             
-            //PrintWaitingTuples();
+            PrintWaitingTuples();
 
 
 
@@ -140,17 +140,21 @@ namespace Operator
         {
             OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
-            tuple = Operation(tuple);
-            //Console.WriteLine("Tuple threadted");
+            //TODO tratar LIst
+            List<OperatorTuple> list = Operation(tuple);
 
-            if (tuple != null)
+           foreach(OperatorTuple op in list)
             {
-                //Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
-                //Console.WriteLine("Enviar " + tuple.Tuple[0]);
-                SendTuple(tuple);
+                Console.WriteLine("Tuple threadted");
 
+                if (tuple != null)
+                {
+                    Console.WriteLine("Tratar tuple " + tuple.Tuple[0]);
+                    Console.WriteLine("Enviar " + tuple.Tuple[0]);
+                    SendTuple(tuple);
+
+                }
             }
-
 
             /* no need to save the tuple */
         }
@@ -161,6 +165,7 @@ namespace Operator
         /// </summary>
         public void Start()
         {
+            Console.WriteLine("Started");
             for (int i = 0; i < this.num_workers; i++)
                 this.workers[i].Start();
         }
@@ -220,6 +225,7 @@ namespace Operator
             {
                 lock (this)
                 {
+                    Console.WriteLine("receive tuple");
                     foreach (string s in tuple.Tuple)
                     {
                         Console.Write(s + " ");
@@ -335,7 +341,7 @@ namespace Operator
         /// Specific operator type of operation
         /// implents the diferent types of operators
         /// </summary>
-        public abstract OperatorTuple Operation(OperatorTuple tuple);
+        public abstract List<OperatorTuple> Operation(OperatorTuple tuple);
 
         private void PrintWaitingTuples()
         {
