@@ -54,7 +54,7 @@
             this.btnBrowse.Location = new System.Drawing.Point(314, 16);
             this.btnBrowse.Margin = new System.Windows.Forms.Padding(2);
             this.btnBrowse.Name = "btnBrowse";
-            this.btnBrowse.Size = new System.Drawing.Size(59, 20);
+            this.btnBrowse.Size = new System.Drawing.Size(59, 21);
             this.btnBrowse.TabIndex = 1;
             this.btnBrowse.Text = "Browse...";
             this.btnBrowse.UseVisualStyleBackColor = true;
@@ -76,10 +76,10 @@
             // 
             // btnLoad
             // 
-            this.btnLoad.Location = new System.Drawing.Point(4, 58);
+            this.btnLoad.Location = new System.Drawing.Point(4, 54);
             this.btnLoad.Margin = new System.Windows.Forms.Padding(2);
             this.btnLoad.Name = "btnLoad";
-            this.btnLoad.Size = new System.Drawing.Size(364, 19);
+            this.btnLoad.Size = new System.Drawing.Size(364, 23);
             this.btnLoad.TabIndex = 2;
             this.btnLoad.Text = "Load";
             this.btnLoad.UseVisualStyleBackColor = true;
@@ -88,12 +88,12 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(14, 126);
+            this.label1.Location = new System.Drawing.Point(4, 27);
             this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(82, 13);
+            this.label1.Size = new System.Drawing.Size(79, 13);
             this.label1.TabIndex = 4;
-            this.label1.Text = "Next Command:";
+            this.label1.Text = "Next Command";
             // 
             // NextCommadTextBox
             // 
@@ -106,10 +106,10 @@
             // 
             // btnStep
             // 
-            this.btnStep.Location = new System.Drawing.Point(251, 54);
+            this.btnStep.Location = new System.Drawing.Point(254, 54);
             this.btnStep.Margin = new System.Windows.Forms.Padding(2);
             this.btnStep.Name = "btnStep";
-            this.btnStep.Size = new System.Drawing.Size(56, 19);
+            this.btnStep.Size = new System.Drawing.Size(56, 29);
             this.btnStep.TabIndex = 7;
             this.btnStep.Text = "Step";
             this.btnStep.UseVisualStyleBackColor = true;
@@ -117,10 +117,10 @@
             // 
             // btnRun
             // 
-            this.btnRun.Location = new System.Drawing.Point(312, 54);
+            this.btnRun.Location = new System.Drawing.Point(314, 54);
             this.btnRun.Margin = new System.Windows.Forms.Padding(2);
             this.btnRun.Name = "btnRun";
-            this.btnRun.Size = new System.Drawing.Size(56, 19);
+            this.btnRun.Size = new System.Drawing.Size(56, 29);
             this.btnRun.TabIndex = 9;
             this.btnRun.Text = "Run";
             this.btnRun.UseVisualStyleBackColor = true;
@@ -129,6 +129,7 @@
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.btnStep);
+            this.groupBox2.Controls.Add(this.label1);
             this.groupBox2.Controls.Add(this.btnRun);
             this.groupBox2.Location = new System.Drawing.Point(9, 100);
             this.groupBox2.Margin = new System.Windows.Forms.Padding(2);
@@ -145,7 +146,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(394, 197);
             this.Controls.Add(this.NextCommadTextBox);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.groupBox2);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -159,6 +159,7 @@
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
+            this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -175,6 +176,8 @@
         private System.Windows.Forms.Button btnStep;
         private System.Windows.Forms.Button btnRun;
         private System.Windows.Forms.GroupBox groupBox2;
+
     }
+
 }
 

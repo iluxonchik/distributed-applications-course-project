@@ -162,8 +162,18 @@ namespace PuppetMasterGUI
 
         private void Form1_Closing(object sender, FormClosingEventArgs e)
         {
-            this.controler.CrashAll();
+            if (MessageBox.Show("This will shutdown the whole DADSTORM. Confirm?", "Close Application", MessageBoxButtons.YesNo) == DialogResult.Yes)
+            {
+                //MessageBox.Show("shutting down all operators, please wait!", "Closing DADSTORM");
+                this.controler.CrashAll();
+            }
+            else
+            {
+                e.Cancel = true;
+                this.Activate();
+            }
 
         }
+        
     }
 }

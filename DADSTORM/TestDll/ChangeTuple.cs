@@ -26,6 +26,18 @@ namespace TestDll
             return aux;
         }
 
+        /* To comply with the new Custom Interface */
+        public List<List<string>> DuplicateOperatorTuple(List<String> tuples)
+        {
+
+            List<List<string>> aux = new List<List<string>>();
+
+            aux.Add(tuples);
+            aux.Add(tuples);
+
+            return aux;
+        }
+
         /// Add more methods if necessary for more tests
         /// 
     }

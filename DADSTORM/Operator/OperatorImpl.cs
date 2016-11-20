@@ -185,11 +185,15 @@ namespace Operator
 
         protected void generalStatus()
         {
-            Console.WriteLine(this.Spec.Type.ToString() + " | " + this.Spec.Id + " | " + myPort);
+            if(this.Spec.ReplicationFactor > 1)
+                Console.WriteLine("TYPE:" + this.Spec.Type.ToString() + " | ID: " + this.Spec.Id + " | REP: " + this.RepId + " | PORT:" + myPort);
+            else
+                Console.WriteLine("TYPE:" + this.Spec.Type.ToString() + " | ID: " + this.Spec.Id + " | PORT:" + myPort);
+
             Console.WriteLine("freeze = " + this.freeze);
-            Console.WriteLine("Sending to: ");
+            Console.WriteLine("All address: ");
             foreach (string s in Spec.Addrs)
-                Console.WriteLine(s);
+                Console.WriteLine("\t" + s);
 
         }
 
@@ -290,8 +294,7 @@ namespace Operator
         private string GetOutUrl(OperatorTuple tuple)
         {
             //routing 
-            //FIX for final submition implement routing algoritm
-            // for check point it should work
+            // FIX check null of url on call method
             if (this.Spec.OutputOperators == null)
                 return null;
             if (this.Spec.OutputOperators[0] == null)
@@ -304,37 +307,49 @@ namespace Operator
                     url = this.Spec.OutputOperators[0].Addresses[0];
                     break;
                 case RoutingType.Random:
-                    int idx = new Random().Next(0, this.Spec.OutputOperators[0].Addresses.Count);
-                    url = this.Spec.OutputOperators[0].Addresses[idx];
+                    int idxR = new Random().Next(0, this.Spec.OutputOperators[0].Addresses.Count);
+                    url = this.Spec.OutputOperators[0].Addresses[idxR];
                     break;
                 case RoutingType.Hashing:
-                    url = this.Spec.OutputOperators[0].Addresses[CalculateHash(tuple.Tuple[this.Spec.Routing.Arg], this.Spec.OutputOperators[0].Addresses.Count)];
+                    int idxH = (int) CalculateHash(tuple.Tuple[this.Spec.Routing.Arg], this.Spec.OutputOperators[0].Addresses.Count);
+                    url = this.Spec.OutputOperators[0].Addresses[idxH];
                     // some hard cheat is going to happen here....
                     break;
             }
 
             return url;
         }
-        //escolher uma , aminha de preferenci
-        public  int CalculateHash(string key, int d)
-        {
-            int hashCode = 0;
-
-            for (int i = 0; i < key.Length; i++)
-            {
-                hashCode = key[i] << i;
-            }
-            hashCode ^= hashCode << 127;
-            hashCode = hashCode % d;
 
 
-            return hashCode;
-        }
-        public  int hash(String key, int length)
+        /* Hashing Functions */
+        private int SimpleHash(string key, int length)
         {
             int res = 0;
             res = Math.Abs(key.GetHashCode() % length);
             return res;
+        }
+
+        private uint CalculateHash(string key, int d)
+        {
+            uint hashCode = 0;
+            int len = key.Length;
+
+            for (int i = 0; i < len; i++)
+            {
+                hashCode ^= (hashCode << 5) + (hashCode >> 2) + key[i];
+            }    
+            hashCode = (hashCode % (uint)d);
+
+            return hashCode;
+        }
+
+        /* for test purposes */
+        public uint CalculateHashPublic(string key, int d)
+        {
+            /* we can specify which hash function to use
+             * for now use this
+             */
+            return CalculateHash(key, d);
         }
 
         public List<OperatorTuple> ReadTuplesFromFile(FileInfo filePath)

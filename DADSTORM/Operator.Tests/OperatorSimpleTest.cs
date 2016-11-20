@@ -26,11 +26,13 @@ namespace Operator.Tests
 
         private readonly List<OperatorTuple> tuples = new List<OperatorTuple> { tuple1, tuple2 };
 
-        /* build directory of TestDll, change as necessary */
-
-        private static readonly string dllName = RESOURCES_DIR+"TestDll.dll";
+        /* the current directory of TestDll, change as necessary */
+        private static readonly string dllName = RESOURCES_DIR + "TestDll.dll";
         private static readonly string className = "TestDll.ChangeTuple";
-        private static readonly string methodName = "DuplicateTuple";
+        private static readonly string methodName = "DuplicateOperatorTuple";
+
+        /* maybe use the teachers DLL for testing ? */
+
         private static readonly string followersFile = RESOURCES_DIR+"followers.dat";
         private static readonly string tweetersFile = RESOURCES_DIR+"tweeters.dat";
         private static readonly string followersFile1 = RESOURCES_DIR + "followers1.dat";
@@ -108,15 +110,15 @@ namespace Operator.Tests
         public void TestCustomOperator()
         {
 
-            Operator.CustomOperator co = new CustomOperator(null, className, methodName);
-            // WARNING FOR TEST ONLY
-            co.setDll(dllName);
+            /* the new Custom does not receive the current directory */
+            Operator.CustomOperator co = new CustomOperator(dllName, className, methodName);
 
             /* the tuple which content should be result */
             List<string> tupleCompare = new List<string> { "test1", "test2", "test3", "test1", "test2", "test3" };
+            OperatorTuple ot = new OperatorTuple(tupleCompare);
 
             /* invoke operation */
-            List<OperatorTuple> aux = co.Operation(tuple3);
+            List<OperatorTuple> aux = co.Operation(ot);
             OperatorTuple res = aux[0];
 
             /* the size of both tuples must be equal */
@@ -128,6 +130,7 @@ namespace Operator.Tests
                 Assert.That(Is.Equals(res.Tuple[i], tupleCompare[i]));
             }
         }
+
 
         [Test]
         public void TestFlowOfTuples()
@@ -238,7 +241,7 @@ namespace Operator.Tests
         {
             DupOperator dop = new DupOperator();
             int length = 5;
-            Assert.That(Is.Equals(dop.CalculateHash("user11",length), dop.CalculateHash("user11", length)));
+            Assert.That(Is.Equals(dop.CalculateHashPublic("user11",length), dop.CalculateHashPublic("user11", length)));
 
             
         }
