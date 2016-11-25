@@ -105,6 +105,10 @@ namespace PuppetMasterGUI
             {
                 //TODO: our exception
             }
+            catch (EndOfCommandsException)
+            {
+                MessageBox.Show("No more Commands to run", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception expAll)
             {
                 MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);

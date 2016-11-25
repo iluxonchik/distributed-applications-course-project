@@ -49,5 +49,9 @@ namespace ProcessCreation
             }
         }
 
+        public void Crash()
+        {
+            System.Environment.Exit(1);
+        }
     }
 }

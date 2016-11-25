@@ -26,6 +26,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreation.Tests", "ProcessCreation.Tests\ProcessCreation.Tests.csproj", "{3D4A191C-B76A-42A9-AD75-392139F70C97}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMasterGUI", "PuppetMasterGUI\PuppetMasterGUI.csproj", "{570909E9-9973-4C88-B7DD-2AF0EF823AB8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD} = {ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PuppetMasterProxy", "PuppetMasterProxy\PuppetMasterProxy.csproj", "{4E5E1B83-6253-4D2F-95A2-5B20C7142678}"
 EndProject

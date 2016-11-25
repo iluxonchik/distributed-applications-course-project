@@ -58,6 +58,11 @@ namespace Operator
 
         private static readonly string PM_ADDR_FMT = @"tcp://{0}:10001/PuppetMaster";
 
+        private delegate void RemoteAsyncDelegate();
+        private delegate void RemoteAsyncDelegateOperatorTuple(OperatorTuple ot);
+        private delegate void RemoteAsyncDelegatePuppetMaster(string s, int i, OperatorTuple ot);
+
+        public const int NUM_FAILURES = 2;
 
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
@@ -65,6 +70,7 @@ namespace Operator
             InitOp();
             RepId = repId;
             MyAddr = myAddr;
+
             foreach (OperatorInput in_ in this.Spec.Inputs)
             {
                 if (in_.Type.Equals(InputType.File))
@@ -262,7 +268,8 @@ namespace Operator
             {
                 //Console.WriteLine("Send tuples to " + this.GetOutUrl());
                 IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl(tuple));
-                opServer.ReceiveTuple(tuple);
+                //opServer.ReceiveTuple(tuple);
+                asyncServiceCall(opServer.ReceiveTuple, tuple, this.GetOutUrl(tuple));
 
                 // send tuple to PuppetMaster
                 if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
@@ -272,8 +279,10 @@ namespace Operator
                         typeof(IPuppetMasterProxy),
                         String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
 
-                    obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
-                   
+                    //obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
+                    asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, tuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+
+
                 }
 
             }
@@ -282,13 +291,69 @@ namespace Operator
                 //TODO: we probably dont want to catch all but for now 
                 // what we do may depends on semantics
                 Console.WriteLine("lastOP");
-                //     Console.WriteLine(e.StackTrace);
+                // Console.WriteLine(e.StackTrace);
 
             }
         }
+        
+
+        private void asyncServiceCall(Action<OperatorTuple> method, OperatorTuple ot, string url)
+        {
+            try
+            {
+                RemoteAsyncDelegateOperatorTuple RemoteDel = new RemoteAsyncDelegateOperatorTuple(method);
+                // Call delegate to remote method
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(ot, null, null);
+                // Wait for the end of the call and then explictly call EndInvoke
+                RemAr.AsyncWaitHandle.WaitOne();
+            }
+            catch (Exception)
+            {
+                // TODO remove op if dead
+                // this.Writelog("Unable to contact Process (Read Next Line to know which one)");
+                // removeRep(url);
+            }
+        }
+
+        private void asyncServiceCall(Action<string, int, OperatorTuple> method, string s, int i, OperatorTuple ot, string url)
+        {
+            try
+            {
+                RemoteAsyncDelegatePuppetMaster RemoteDel = new RemoteAsyncDelegatePuppetMaster(method);
+                // Call delegate to remote method
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(s, i, ot, null, null);
+                // Wait for the end of the call and then explictly call EndInvoke
+                RemAr.AsyncWaitHandle.WaitOne();
+            }
+            catch (Exception)
+            {
+                // TODO remove op if dead
+                // this.Writelog("Unable to contact Process (Read Next Line to know which one)");
+                // removeRep(url);
+            }
+        }
+
+        private void asyncServiceCall(Action method, string url)
+        {
+            try
+            {
+                RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(method);
+                // Call delegate to remote method
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
+                // Wait for the end of the call and then explictly call EndInvoke
+                RemAr.AsyncWaitHandle.WaitOne();
+            }
+            catch (Exception)
+            {
+                // TODO remove op if dead
+                // this.Writelog("Unable to contact Process (Read Next Line to know which one)");
+                // removeRep(url);
+            }
+        }
+
 
         /// <summary>
-        /// for the frist delivery return index=0 because that is the only availale
+        /// for the first delivery return index=0 because that is the only availale
         /// </summary>
         /// <returns></returns>
         private string GetOutUrl(OperatorTuple tuple)
@@ -319,7 +384,7 @@ namespace Operator
 
             return url;
         }
-
+        
 
         /* Hashing Functions */
         private int SimpleHash(string key, int length)
@@ -351,6 +416,7 @@ namespace Operator
              */
             return CalculateHash(key, d);
         }
+
 
         public List<OperatorTuple> ReadTuplesFromFile(FileInfo filePath)
         {

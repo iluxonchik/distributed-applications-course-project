@@ -136,10 +136,13 @@ namespace PuppetMaster
         /* to be used with Step button to show the next command before is executed */
         public Command getTopCommand()
         {
-            if (this.sysConfig.commands.Count != 0)
+            if (this.sysConfig != null)
             {
-                Queue<Command> temp = new Queue<Command>(this.sysConfig.commands);
-                return temp.Dequeue();
+                if (this.sysConfig.commands.Count != 0)
+                {
+                    Queue<Command> temp = new Queue<Command>(this.sysConfig.commands);
+                    return temp.Dequeue();
+                }
             }
             return null;
         }
@@ -328,7 +331,13 @@ namespace PuppetMaster
                     }
                 }
             }
+
+            /* shutdown/crash PCS */
+            
+            
         }
+
+
         //TODO test method
         public void removeUrl(string url)
         {

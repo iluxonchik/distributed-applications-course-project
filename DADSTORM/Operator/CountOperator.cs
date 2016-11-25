@@ -30,7 +30,10 @@ namespace Operator
             countResult++;
 
             List<OperatorTuple> list = new List<OperatorTuple>();
-            list.Add(tuple);
+            List<String> temp = new List<String>();
+            temp.Add(countResult.ToString());
+            list.Add(new OperatorTuple(temp));
+
             return list;
         }
 
