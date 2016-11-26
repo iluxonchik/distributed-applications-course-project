@@ -31,7 +31,8 @@ namespace Operator
         public CustomOperator(OperatorSpec spec,string dll_d, string class_c, string method_m, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             dll_ = Directory.GetCurrentDirectory() + "\\" + dll_d;
-            class_ =  "LibCustomOperator." + class_c; // should be handled in parser to include the namespace FIX
+            class_ = class_c; // should be handled in parser to include the namespace FIX
+            // class_ =  "LibCustomOperator." + class_c;
             method_ = method_m;
         }
 

@@ -40,6 +40,7 @@
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
+            
             // 
             // txtConfigPath
             // 
@@ -48,6 +49,7 @@
             this.txtConfigPath.Name = "txtConfigPath";
             this.txtConfigPath.Size = new System.Drawing.Size(306, 20);
             this.txtConfigPath.TabIndex = 0;
+            
             // 
             // btnBrowse
             // 
@@ -59,6 +61,7 @@
             this.btnBrowse.Text = "Browse...";
             this.btnBrowse.UseVisualStyleBackColor = true;
             this.btnBrowse.Click += new System.EventHandler(this.btnBrowse_Click);
+            
             // 
             // groupBox1
             // 
@@ -73,6 +76,7 @@
             this.groupBox1.TabIndex = 3;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Configuration File";
+            
             // 
             // btnLoad
             // 
@@ -84,6 +88,7 @@
             this.btnLoad.Text = "Load";
             this.btnLoad.UseVisualStyleBackColor = true;
             this.btnLoad.Click += new System.EventHandler(this.btnLoad_Click);
+            
             // 
             // label1
             // 
@@ -94,6 +99,7 @@
             this.label1.Size = new System.Drawing.Size(79, 13);
             this.label1.TabIndex = 4;
             this.label1.Text = "Next Command";
+            
             // 
             // NextCommadTextBox
             // 
@@ -114,6 +120,7 @@
             this.btnStep.Text = "Step";
             this.btnStep.UseVisualStyleBackColor = true;
             this.btnStep.Click += new System.EventHandler(this.btnStep_Click);
+            
             // 
             // btnRun
             // 
@@ -125,6 +132,7 @@
             this.btnRun.Text = "Run";
             this.btnRun.UseVisualStyleBackColor = true;
             this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
+            
             // 
             // groupBox2
             // 
@@ -139,6 +147,7 @@
             this.groupBox2.TabIndex = 10;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Execution";
+            
             // 
             // frmPuppetMaster
             // 

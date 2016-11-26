@@ -10,6 +10,8 @@ using ConfigTypes;
 using System.IO;
 using System.Text.RegularExpressions;
 using PuppetMasterProxy;
+using System.Collections;
+using System.Net.Sockets;
 
 namespace Operator
 {
@@ -63,6 +65,7 @@ namespace Operator
         private delegate void RemoteAsyncDelegatePuppetMaster(string s, int i, OperatorTuple ot);
 
         public const int NUM_FAILURES = 2;
+        Dictionary<string, int> countFails = new Dictionary<string, int>();
 
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
@@ -70,6 +73,7 @@ namespace Operator
             InitOp();
             RepId = repId;
             MyAddr = myAddr;
+            
 
             foreach (OperatorInput in_ in this.Spec.Inputs)
             {
@@ -79,7 +83,15 @@ namespace Operator
                     this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR+in_.Name)));
                 }
             }
-            //PrintWaitingTuples();
+            //PrintWaitingTuples();{
+            if (this.Spec.OutputOperators != null)
+            {
+                if (this.Spec.OutputOperators.Count > 0)
+                {
+                    foreach (string s in Spec.OutputOperators[0].Addresses)
+                        countFails.Add(s, 0);
+                }
+            }
         }
 
         public OperatorImpl()
@@ -197,10 +209,12 @@ namespace Operator
                 Console.WriteLine("TYPE:" + this.Spec.Type.ToString() + " | ID: " + this.Spec.Id + " | PORT:" + myPort);
 
             Console.WriteLine("freeze = " + this.freeze);
-            Console.WriteLine("All address: ");
+            Console.WriteLine("All my OP address: ");
             foreach (string s in Spec.Addrs)
                 Console.WriteLine("\t" + s);
-
+            Console.WriteLine("Can send to: ");
+            foreach (string s in Spec.OutputOperators[0].Addresses)
+                Console.WriteLine("\t" + s);
         }
 
 
@@ -266,7 +280,7 @@ namespace Operator
 
             try
             {
-                //Console.WriteLine("Send tuples to " + this.GetOutUrl());
+                Console.WriteLine("Send tuples to: " + this.GetOutUrl(tuple));
                 IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl(tuple));
                 //opServer.ReceiveTuple(tuple);
                 asyncServiceCall(opServer.ReceiveTuple, tuple, this.GetOutUrl(tuple));
@@ -286,13 +300,29 @@ namespace Operator
                 }
 
             }
+            catch (SocketException)
+            {
+                new Thread(() =>
+                {
+                    Thread.CurrentThread.IsBackground = true;
+                    Thread.Sleep(5000); /* just to make sure if the next OP will remove it failed or not */
+                    /* make simple call to new OP available */
+                    IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl(tuple));
+                    asyncServiceCall(opServer.ReceiveTuple, tuple, this.GetOutUrl(tuple));
+                    if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
+                    {
+                        IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(typeof(IPuppetMasterProxy),String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+                        asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, tuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+                    }
+
+                }).Start();
+            }
             catch (Exception e)
             {
                 //TODO: we probably dont want to catch all but for now 
                 // what we do may depends on semantics
                 Console.WriteLine("lastOP");
                 // Console.WriteLine(e.StackTrace);
-
             }
         }
         
@@ -306,12 +336,18 @@ namespace Operator
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(ot, null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
+                RemoteDel.EndInvoke(RemAr);
+            }
+            catch (SocketException)
+            {
+                // Console.WriteLine("Could not locate server");
+                Console.WriteLine("Going to remove OP: {0}", url);
+                isToRemove(url);
+                throw new SocketException(); // send top to retry
             }
             catch (Exception)
             {
-                // TODO remove op if dead
-                // this.Writelog("Unable to contact Process (Read Next Line to know which one)");
-                // removeRep(url);
+                // TODO some weird error
             }
         }
 
@@ -324,12 +360,18 @@ namespace Operator
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(s, i, ot, null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
+                RemoteDel.EndInvoke(RemAr);
+            }
+            catch (SocketException)
+            {
+                // Console.WriteLine("Could not locate server");
+                // Console.WriteLine("Going to remove PuppetMaster: {0}", url);
+                // isToRemove(url);
+                // throw new SocketException(); // send top to retry
             }
             catch (Exception)
             {
-                // TODO remove op if dead
-                // this.Writelog("Unable to contact Process (Read Next Line to know which one)");
-                // removeRep(url);
+                // TODO some weird error
             }
         }
 
@@ -342,13 +384,66 @@ namespace Operator
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
+                RemoteDel.EndInvoke(RemAr);
+            }
+            catch (SocketException)
+            {
+                // Console.WriteLine("Could not locate server");
+                // Console.WriteLine("Going to remove in General: {0}", url);
+                isToRemove(url);
+                throw new SocketException(); // send top to retry
             }
             catch (Exception)
             {
-                // TODO remove op if dead
-                // this.Writelog("Unable to contact Process (Read Next Line to know which one)");
-                // removeRep(url);
+                // TODO some weird error
             }
+        }
+
+        public void isToRemove(string url)
+        {
+            // Console.WriteLine("I've been called to remove: {0}", url);
+            int fails = this.countFails[url];
+            fails++;
+
+            /* then is to remove */
+            if(fails >= NUM_FAILURES)
+            {
+                removeRep(url);
+                this.countFails.Remove(url);
+            }
+            else /* just save the new value */
+            {
+                this.countFails[url] = fails;
+            }
+        }
+
+
+        public void removeUrl(string url)
+        {
+            removeRep(url);
+        }
+
+        private void removeRep(string url)
+        {
+            List<OperatorOutput> aux = new List<OperatorOutput>(this.Spec.OutputOperators);
+            bool b = false;
+            foreach (OperatorOutput op in aux)
+            {
+                foreach (string u in op.Addresses)
+                {
+                    if (u.Equals(url))
+                    {
+                        op.Addresses.Remove(url);
+                        b = true;
+                        Console.WriteLine("Just removed: {0}", url);
+                        break;
+                    }
+
+                }
+                if (b)
+                    break;
+            }
+            this.Spec.OutputOperators = aux;
         }
 
 

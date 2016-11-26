@@ -20,7 +20,7 @@ namespace ProcessCreation
         }
         public void CreateOperator(OperatorSpec opSpec, string myAddr, int repId)
         {
-            Console.WriteLine("CreateOperator colled");
+            Console.WriteLine("CreateOperator called");
             Directory.SetCurrentDirectory(operatorExecFile.Directory.FullName);
            
             FileInfo opFile = new FileInfo(Directory.GetCurrentDirectory() + "/operator/" + opSpec.Id);

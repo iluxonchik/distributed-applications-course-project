@@ -52,7 +52,7 @@ namespace Operator.Tests
         }
 
         [Test]
-        public void TestUniqueOperator()
+        public void TestUniqueOperatorSimple()
         {
             Operator.UniqOperator uo = new UniqOperator(2);
             Assert.That(Is.Equals(uo.Operation(tuple1)[0], tuple1));
@@ -64,24 +64,29 @@ namespace Operator.Tests
         }
 
         [Test]
-        public void TestCountOperator()
+        public void TestCountOperatorSimple()
         {
+
             Operator.CountOperator co = new CountOperator();
-            Assert.That(Is.Equals(co.Operation(tuple1)[0], tuple1));
+            
+            //Console.WriteLine(co.Operation(tuple1)[0].Tuple.SequenceEqual(temp));
+
+            // We want to compare the integer value saved as string
+            Assert.That(Is.Equals(co.Operation(tuple1)[0].Tuple[0], "1"));
             Assert.That(Is.Equals(co.countResult, 1));
 
-            Assert.That(Is.Equals(co.Operation(tuple2)[0], tuple2));
+            Assert.That(Is.Equals(co.Operation(tuple2)[0].Tuple[0], "2"));
             Assert.That(Is.Equals(co.countResult, 2));
 
-            Assert.That(Is.Equals(co.Operation(tuple2)[0], tuple2));
+            Assert.That(Is.Equals(co.Operation(tuple2)[0].Tuple[0], "3"));
             Assert.That(Is.Equals(co.countResult, 3));
 
-            Assert.That(Is.Equals(co.Operation(tuple2)[0], tuple2));
+            Assert.That(Is.Equals(co.Operation(tuple2)[0].Tuple[0], "4"));
             Assert.That(Is.Equals(co.countResult, 4));
         }
 
         [Test]
-        public void TestDupOperator()
+        public void TestDupOperatorSimple()
         {
             Operator.DupOperator dop = new DupOperator();
             Assert.That(Is.Equals(dop.Operation(tuple1)[0], tuple1));
@@ -90,7 +95,7 @@ namespace Operator.Tests
         }
 
         [Test]
-        public void TestFilterOperator()
+        public void TestFilterOperatorSimple()
         {
             Operator.FilterOperator fo = new FilterOperator(1, "<", "text2");
             Assert.That(Is.Equals(fo.Operation(tuple1)[0], tuple1));
@@ -107,7 +112,7 @@ namespace Operator.Tests
         }
 
         [Test]
-        public void TestCustomOperator()
+        public void TestCustomOperatorSimple()
         {
 
             /* the new Custom does not receive the current directory */

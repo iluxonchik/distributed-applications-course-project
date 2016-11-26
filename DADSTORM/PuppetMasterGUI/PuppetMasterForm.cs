@@ -28,6 +28,8 @@ namespace PuppetMasterGUI
             InitializeComponent();
             this.controler = new PuppetMasterControler();
             this.configFileName = null;
+            btnRun.Enabled = false;
+            btnStep.Enabled = false;
 
         }
 
@@ -60,6 +62,8 @@ namespace PuppetMasterGUI
             if (this.configFileName != null)
             {
                 this.controler.ParseConfig(this.configFileName);
+                btnRun.Enabled = true;
+                btnStep.Enabled = true;
 
                 Command cm = controler.getTopCommand();
                 if (cm != null)
@@ -93,10 +97,12 @@ namespace PuppetMasterGUI
             //{
             //    MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             //}
+            
         }
 
         private void btnRun_Click(object sender, EventArgs e)
         {
+            
             try
             {
                 this.controler.RunAll();
@@ -114,6 +120,8 @@ namespace PuppetMasterGUI
                 MessageBox.Show(expAll.StackTrace, "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             NextCommadTextBox.Text = "";
+            btnRun.Enabled = false;
+            btnStep.Enabled = false;
         }
 
         private void btnStep_Click(object sender, EventArgs e)
@@ -131,7 +139,7 @@ namespace PuppetMasterGUI
             }
             catch (EndOfCommandsException)
             {
-                MessageBox.Show("No more Commands to run", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                //MessageBox.Show("No more Commands to run", "Erro", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception expAll)
             {
@@ -160,7 +168,18 @@ namespace PuppetMasterGUI
                 }
             }
             else
-                NextCommadTextBox.Text ="";
+            {
+                if(cm == null)
+                    NextCommadTextBox.Text = "";
+                else
+                {
+                    NextCommadTextBox.Text = "";
+                    btnRun.Enabled = false;
+                    btnStep.Enabled = false;
+                }
+
+            }
+            
         }
 
 

@@ -128,7 +128,7 @@ namespace PuppetMaster.Tests
         /// Test that the expected amount of operators is parsed.
         /// </summary>
         [Test]
-        public void TestOperatorCount()
+        public void TestOperatorCountOther()
         {
             ConfigParser cp = new ConfigParser(SIMPLE_CONF);
             Config conf = cp.Parse();
@@ -137,7 +137,7 @@ namespace PuppetMaster.Tests
         }
        
         [Test]
-        public void TestUniqOperator()
+        public void TestUniqOperatorSimple()
         {
             ConfigParser cp = new ConfigParser(SIMPLE_CONF);
             Config conf = cp.Parse();
@@ -209,7 +209,7 @@ namespace PuppetMaster.Tests
 
         #region ProvidedConfig Tests
         [Test]
-        public void TestLoggingLevelParsing()
+        public void TestLoggingLevelParsingSimple()
         {
             ConfigParser cp = new ConfigParser(PROVIDED_CONF);
             Config conf = cp.Parse();
@@ -221,7 +221,7 @@ namespace PuppetMaster.Tests
         /// Test all possible combinations of Semantics values.
         /// </summary>
         [Test]
-        public void TestSemanticsParsing()
+        public void TestSemanticsParsingSimple()
         {
             ConfigParser cp = new ConfigParser(PROVIDED_CONF);
             Config conf = cp.Parse();

@@ -257,12 +257,18 @@ namespace PuppetMaster
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(ms, null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
+                RemoteDel.EndInvoke(RemAr);
+            }
+            catch (SocketException)
+            {
+                // Console.WriteLine("Could not locate server");
+                this.Writelog("Unable to contact OP " + url);
+                removeRep(url);
             }
             catch (Exception)
             {
-                //TODO put this in a constante
-                this.Writelog("Unable to contact Process (Read Next Line to know which one)");
-                removeRep(url);
+                // TODO
+                // What to do in this case...
             }
         }
         private void asyncServiceCall(Action method, string url)
@@ -274,14 +280,20 @@ namespace PuppetMaster
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
+                RemoteDel.EndInvoke(RemAr);
+            }
+            catch (SocketException)
+            {
+                // Console.WriteLine("Could not locate server");
+                this.Writelog("Unable to contact OP " + url);
+                removeRep(url);
             }
             catch (Exception)
             {
-                //TODO
-                this.Writelog("Unable to contact Process (Read Next Line to know which one)");
-                removeRep(url);
-
+                // TODO
+                // What to do in this case...
             }
+        
         }
 
         public void Writelog(string msg)
