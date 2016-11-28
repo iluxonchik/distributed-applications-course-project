@@ -36,7 +36,7 @@ namespace PuppetMaster
         private static readonly int PORT = 10001;
         private static IDictionary props = new Hashtable();
         private static Mutex mux = new Mutex();
-
+        private System.Object lockThis = new System.Object();
 
 
         public PuppetMasterControler()
@@ -186,8 +186,8 @@ namespace PuppetMaster
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                asyncServiceCall(op.UnFreeze, url);
                 this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
+                asyncServiceCall(op.UnFreeze, url);
             }
         }
 
@@ -196,8 +196,8 @@ namespace PuppetMaster
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                asyncServiceCall(op.Freeze, url);
                 this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
+                asyncServiceCall(op.Freeze, url);
             }
         }
 
@@ -206,10 +206,11 @@ namespace PuppetMaster
 
             string url = command.Operator.Addrs[command.RepId];
             IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-            asyncServiceCall(op.Crash, url);
-            removeRep(url);
 
             this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
+
+            asyncServiceCall(op.Crash, url);
+            removeRep(url);
         }
 
         private void Interval(Command command)
@@ -217,19 +218,19 @@ namespace PuppetMaster
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                asyncServiceCall(op.Interval, command.MS, url);
                 this.Writelog(command.Operator.Id + " | " +url+ " | " + command.Type.ToString() + " interval: " + command.MS);
+                asyncServiceCall(op.Interval, command.MS, url);
             }
         }
 
         private void Start(Command command)
         {
-            int counter =0;
+            int counter = 0;
             foreach (string url in command.Operator.Addrs)
             {
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                asyncServiceCall(op.Start, url);
                 this.Writelog(command.Operator.Id + " | " + counter++ + " | " + command.Type.ToString());
+                asyncServiceCall(op.Start, url);
             }
         }
 
@@ -237,13 +238,12 @@ namespace PuppetMaster
         {
             foreach (OperatorSpec opSpec in this.sysConfig.Operators)
             {
+                int counter = 0;
                 foreach (string url in opSpec.Addrs)
                 {
                     IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
+                    this.Writelog(opSpec.Id + " | " + counter++ + " | " + url + " | " + command.Type.ToString());
                     asyncServiceCall(op.Status, url);
-                    //TODO:
-                    //this.Writelog(opSpec.Id + " | " + opSpec.RepId + " | " + command.Type.ToString());
-                    this.Writelog(opSpec.Id + " | " + url + " | " + command.Type.ToString());
                 }
             }
         }
@@ -257,7 +257,7 @@ namespace PuppetMaster
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(ms, null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
-                RemoteDel.EndInvoke(RemAr);
+                //RemoteDel.EndInvoke(RemAr); // this causes false negatives, maybe OP too slow?
             }
             catch (SocketException)
             {
@@ -280,7 +280,7 @@ namespace PuppetMaster
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
-                RemoteDel.EndInvoke(RemAr);
+                //RemoteDel.EndInvoke(RemAr); // this causes false negatives, maybe OP too slow?
             }
             catch (SocketException)
             {
@@ -358,25 +358,30 @@ namespace PuppetMaster
 
         private void removeRep(string url)
         {
-            List<OperatorSpec> aux = new List<OperatorSpec>(this.sysConfig.Operators);
-            bool b = false;
-            foreach (OperatorSpec op in aux)
+            lock (lockThis)
             {
-                foreach (string u in op.Addrs)
+                List<OperatorSpec> aux = new List<OperatorSpec>(this.sysConfig.Operators);
+                bool b = false;
+                foreach (OperatorSpec op in aux)
                 {
-                    if (u.Equals(url))
+                    foreach (string u in op.Addrs.ToList())
                     {
-                        op.Addrs.Remove(url);
-                        b = true;
-                        break;
+                        if (u.Equals(url))
+                        {
+                            //op.Addrs.Remove(url);
+                            op.Addrs.RemoveAll(item => item.Equals(url));
+                            List<string> temp = new List<string>(op.Addrs);
+                            op.Addrs = temp;
+                            b = true;
+                            break;
+                        }
+
                     }
-
+                    if (b)
+                        break;
                 }
-                if (b)
-                    break;
+                this.sysConfig.Operators = new List<OperatorSpec>(aux);
             }
-            this.sysConfig.Operators = aux;
-
 
         }
 

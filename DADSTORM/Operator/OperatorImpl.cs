@@ -277,13 +277,13 @@ namespace Operator
         //routing for check point is primary and We only have one replica for each operator
         public void SendTuple(OperatorTuple tuple)
         {
-
+            string url = this.GetOutUrl(tuple);
             try
             {
-                Console.WriteLine("Send tuples to: " + this.GetOutUrl(tuple));
-                IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl(tuple));
+                //Console.WriteLine("Send tuples to: " + url);
+                IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
                 //opServer.ReceiveTuple(tuple);
-                asyncServiceCall(opServer.ReceiveTuple, tuple, this.GetOutUrl(tuple));
+                asyncServiceCall(opServer.ReceiveTuple, tuple, url);
 
                 // send tuple to PuppetMaster
                 if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
@@ -305,10 +305,15 @@ namespace Operator
                 new Thread(() =>
                 {
                     Thread.CurrentThread.IsBackground = true;
-                    Thread.Sleep(5000); /* just to make sure if the next OP will remove it failed or not */
+                    string newUrl = this.GetOutUrl(tuple);
+                    while (url == newUrl)
+                    {
+                        Thread.Sleep(5000); /* just to make sure if the next OP will remove it failed or not */
+                        newUrl = this.GetOutUrl(tuple);
+                    }
                     /* make simple call to new OP available */
-                    IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), this.GetOutUrl(tuple));
-                    asyncServiceCall(opServer.ReceiveTuple, tuple, this.GetOutUrl(tuple));
+                    IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), newUrl);
+                    asyncServiceCall(opServer.ReceiveTuple, tuple, newUrl);
                     if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
                     {
                         IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(typeof(IPuppetMasterProxy),String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
@@ -340,8 +345,7 @@ namespace Operator
             }
             catch (SocketException)
             {
-                // Console.WriteLine("Could not locate server");
-                Console.WriteLine("Going to remove OP: {0}", url);
+                //Console.WriteLine("Could not locate OP: {0}", url);
                 isToRemove(url);
                 throw new SocketException(); // send top to retry
             }
@@ -409,7 +413,7 @@ namespace Operator
             if(fails >= NUM_FAILURES)
             {
                 removeRep(url);
-                this.countFails.Remove(url);
+                //this.countFails.Remove(url);
             }
             else /* just save the new value */
             {
@@ -457,7 +461,9 @@ namespace Operator
             // FIX check null of url on call method
             if (this.Spec.OutputOperators == null)
                 return null;
-            if (this.Spec.OutputOperators[0] == null)
+            if (this.Spec.OutputOperators.Count <= 0)
+                return null;
+            if (this.Spec.OutputOperators[0].Addresses.Count <= 0)
                 return null;
             string url = null;
 
@@ -471,7 +477,10 @@ namespace Operator
                     url = this.Spec.OutputOperators[0].Addresses[idxR];
                     break;
                 case RoutingType.Hashing:
-                    int idxH = (int) CalculateHash(tuple.Tuple[this.Spec.Routing.Arg], this.Spec.OutputOperators[0].Addresses.Count);
+                    int max_arg = this.Spec.Routing.Arg - 1;
+                    if (this.Spec.Routing.Arg > tuple.Tuple.Count)
+                        max_arg = tuple.Tuple.Count - 1;
+                    int idxH = (int) CalculateHash(tuple.Tuple[max_arg], this.Spec.OutputOperators[0].Addresses.Count);
                     url = this.Spec.OutputOperators[0].Addresses[idxH];
                     // some hard cheat is going to happen here....
                     break;
