@@ -46,7 +46,10 @@ namespace ProcessCreation.Tests
             in_.Type = InputType.Operator;
          
             spec.Inputs = inputs;
-            pcs.CreateOperator(spec, "tcp://localhost:9090",0);
+            Process proc = pcs.CreateOperator(spec, "tcp://localhost:9090",0);
+            Assert.That(proc, Is.Not.Null);
+            proc.Kill();
+
             }
         }
     }
