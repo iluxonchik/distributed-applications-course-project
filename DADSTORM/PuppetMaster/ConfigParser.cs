@@ -22,7 +22,7 @@ namespace PuppetMaster
         private const string OPERATOR_REGEX = @"^(?<operator_id>\w+) (input[ _]ops) (?<input_ops>(?<input_op>(\w+\.?){1,2})|((?<input_op>(\w+\.?){1,2}), ?)+(?<input_op>(\w+\.?){1,2})+)(\r?\n| )" + // you'll have to trust that this works 😂😂😂
                                               @"(rep[ _]fact) (?<rep_fact>\d+) (routing) (?<routing>(primary|random|hashing\(\d+\)))(\r?\n| )" +
                                               @"(address) (?<address_list>(?<address>tcp:\/\/(\d+\.\d+\.\d+\.\d+|\w+):(\d+)\/[\w-]+),? ?)+(\r?\n| )" + // NOTE: accepts "," at the end
-                                              @"(operator[ _]spec) (?<op_spec>(?<op_uniq>UNIQ (?<op_uniq_field>\d+))|(?<op_count>COUNT)|(?<op_dup>DUP)|(?<op_filter>FILTER (?<op_filter_field>\d+), ?(?<op_filter_cond>(>|<|=)), ?(?<op_filter_value>""?[a-zA-Z0-10\.\d]+""?))|(?<op_custom>CUSTOM (?<op_custom_dll>\w+\.dll), ?(?<op_custom_class>\w+), ?(?<op_custom_method>\w+)))\r?\n?";
+                                              @"(operator[ _]spec) (?<op_spec>(?<op_uniq>UNIQ (?<op_uniq_field>\d+))|(?<op_count>COUNT)|(?<op_dup>DUP)|(?<op_filter>FILTER (?<op_filter_field>\d+), ?(?<op_filter_cond>(>|<|=)), ?(?<op_filter_value>""?[a-zA-Z0-10\.\d]+""?))|(?<op_custom>CUSTOM (?<op_custom_dll>\w+\.dll), ?(?<op_custom_class>[\w.]+), ?(?<op_custom_method>\w+)))\r?\n?";
         private readonly Action<string, Config>[] regexParsers;
         private readonly string[] REGEX_LIST = { LOGGING_LVL_REGEX };
 
