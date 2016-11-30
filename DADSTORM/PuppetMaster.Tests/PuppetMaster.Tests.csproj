@@ -89,6 +89,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="resources\complemented_provided_config.config" />
+    <None Include="resources\dadstorm_config_full.conf" />
     <None Include="resources\provided_config.config" />
     <None Include="resources\simple_conf_semantics_default.config" />
     <None Include="resources\simple_conf_logging_default.config" />

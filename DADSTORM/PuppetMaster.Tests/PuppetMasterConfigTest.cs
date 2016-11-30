@@ -182,11 +182,14 @@ namespace PuppetMaster.Tests
         private StreamReader provided_config;
         private readonly string PROVIDED_CONF;
         private readonly string COMPLEMENTED_CONF;
+        private readonly string FULL_CONFIG;
 
         public PuppetMasterProvidedConfigTest()
         {
             PROVIDED_CONF = RESOURCES_DIR + "provided_config.config";
             COMPLEMENTED_CONF = RESOURCES_DIR + "complemented_provided_config.config";
+            FULL_CONFIG = RESOURCES_DIR + "dadstorm_config_full.conf";
+            
         }
 
         [SetUp]
@@ -537,6 +540,43 @@ namespace PuppetMaster.Tests
             {
                 Assert.That(Is.Equals(ops.PuppetMasterUrl, URL));
             }
+        }
+        #endregion
+
+        #region DADSTORM Full Config Tests
+        [Test]
+        public void TestCustomNamespace()
+        {
+            ConfigParser cp = new ConfigParser(FULL_CONFIG);
+            Config conf = cp.Parse();
+
+            // Build expected operator
+            List<OperatorInput> expInputs = new List<OperatorInput>();
+            expInputs.Add(new OperatorInput() { Name = "OP4", Type = InputType.Operator, Addresses = new List<string> { "tcp://localhost:11006/op" } });
+
+            List<string> expAddrs = new List<string>();
+            expAddrs.AddRange(new string[] { "tcp://localhost:11008/op" });
+
+            List<string> expArgs = new List<string>();
+            expArgs.Add("mylib.dll", "LibCustomOperator.OutputOperator", "CustomOperation");
+
+            OperatorRouting expRouting = new OperatorRouting() { Type = RoutingType.Primary };
+
+            OperatorSpec expected = new OperatorSpec()
+            {
+                Id = "OP5",
+                Inputs = expInputs,
+                ReplicationFactor = 1,
+                Addrs = expAddrs,
+                Args = expArgs,
+                Routing = expRouting,
+                // OutputOperators = null,
+                Type = OperatorType.Custom,
+                Semantics = Semantics.AtMostOnce,
+                LoggingLevel = LoggingLevel.Full
+            };
+
+            Assert.That(conf.Operators, Does.Contain(expected).Using(new OperatorSpec.OperatorSpecComparer()));
         }
         #endregion
     }
