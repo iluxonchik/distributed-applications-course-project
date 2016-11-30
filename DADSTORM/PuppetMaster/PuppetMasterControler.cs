@@ -37,14 +37,15 @@ namespace PuppetMaster
         private static IDictionary props = new Hashtable();
         private static Mutex mux = new Mutex();
         private System.Object lockThis = new System.Object();
+        private List<String> urlToRemove = new List<string>();
 
 
         public PuppetMasterControler()
         {
             this.sysConfig = null;
             this.cmmParser = null;
-            this.parser = null;   
-          
+            this.parser = null;
+
             this.wait = 0;
             this.puppetMasterUrl = this.GetLocalIPAddress();
             props["port"] = PORT;
@@ -63,12 +64,12 @@ namespace PuppetMaster
         {
             this.sysConfig = sysconf;
             this.parser = null;
-            
+
             this.wait = 0;
             this.puppetMasterUrl = this.GetLocalIPAddress();
 
         }
-       
+
 
 
         private string GetLocalIPAddress()
@@ -88,7 +89,7 @@ namespace PuppetMaster
             this.parser = new ConfigParser(fileName);
             this.sysConfig = this.parser.Parse();
             this.cmmParser = new CommandParser(fileName, this.sysConfig);
-            this.sysConfig.commands=this.cmmParser.Parse();
+            this.sysConfig.commands = this.cmmParser.Parse();
             this.sysConfig.SetPuppetMasterUrl(this.puppetMasterUrl);
             CreateOperators();
         }
@@ -179,12 +180,15 @@ namespace PuppetMaster
                     break;
 
             }
+            this.cleanDeadReps();
         }
 
         private void UnFree(Command command)
         {
-            foreach (string url in command.Operator.Addrs)
+           
+            for (int i = 0; i < command.Operator.Addrs.Count; i++)
             {
+                String url = command.Operator.Addrs[i];
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
                 asyncServiceCall(op.UnFreeze, url);
@@ -193,8 +197,9 @@ namespace PuppetMaster
 
         private void Freeze(Command command)
         {
-            foreach (string url in command.Operator.Addrs)
+            for (int i = 0; i < command.Operator.Addrs.Count; i++)
             {
+                String url = command.Operator.Addrs[i];
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
                 asyncServiceCall(op.Freeze, url);
@@ -210,15 +215,17 @@ namespace PuppetMaster
             this.Writelog(command.Operator.Id + " | " + command.RepId + " | " + command.Type.ToString());
 
             asyncServiceCall(op.Crash, url);
-            removeRep(url);
+            //removeRep(url);
+            urlToRemove.Add(url);
         }
 
         private void Interval(Command command)
         {
-            foreach (string url in command.Operator.Addrs)
+            for (int i = 0; i < command.Operator.Addrs.Count; i++)
             {
+                String url = command.Operator.Addrs[i];
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                this.Writelog(command.Operator.Id + " | " +url+ " | " + command.Type.ToString() + " interval: " + command.MS);
+                this.Writelog(command.Operator.Id + " | " + url + " | " + command.Type.ToString() + " interval: " + command.MS);
                 asyncServiceCall(op.Interval, command.MS, url);
             }
         }
@@ -226,8 +233,12 @@ namespace PuppetMaster
         private void Start(Command command)
         {
             int counter = 0;
-            foreach (string url in command.Operator.Addrs)
+
+
+            for (int i = 0; i < command.Operator.Addrs.Count; i++)
             {
+                String url = command.Operator.Addrs[i];
+
                 IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                 this.Writelog(command.Operator.Id + " | " + counter++ + " | " + command.Type.ToString());
                 asyncServiceCall(op.Start, url);
@@ -239,8 +250,10 @@ namespace PuppetMaster
             foreach (OperatorSpec opSpec in this.sysConfig.Operators)
             {
                 int counter = 0;
-                foreach (string url in opSpec.Addrs)
+               
+                for (int i = 0; i < opSpec.Addrs.Count; i++)
                 {
+                    String url = opSpec.Addrs[i];
                     IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
                     this.Writelog(opSpec.Id + " | " + counter++ + " | " + url + " | " + command.Type.ToString());
                     asyncServiceCall(op.Status, url);
@@ -257,13 +270,14 @@ namespace PuppetMaster
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(ms, null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
-                //RemoteDel.EndInvoke(RemAr); // this causes false negatives, maybe OP too slow?
+                RemoteDel.EndInvoke(RemAr); // this causes false negatives, maybe OP too slow?
             }
             catch (SocketException)
             {
                 // Console.WriteLine("Could not locate server");
                 this.Writelog("Unable to contact OP " + url);
-                removeRep(url);
+                //removeRep(url);
+                urlToRemove.Add(url);
             }
             catch (Exception)
             {
@@ -280,32 +294,33 @@ namespace PuppetMaster
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
-                //RemoteDel.EndInvoke(RemAr); // this causes false negatives, maybe OP too slow?
+                RemoteDel.EndInvoke(RemAr); // this causes false negatives, maybe OP too slow?
             }
             catch (SocketException)
             {
                 // Console.WriteLine("Could not locate server");
                 this.Writelog("Unable to contact OP " + url);
-                removeRep(url);
+                //removeRep(url);
+                urlToRemove.Add(url);
             }
             catch (Exception)
             {
                 // TODO
                 // What to do in this case...
             }
-        
+
         }
 
         public void Writelog(string msg)
         {
             mux.WaitOne();
-                using (StreamWriter outputFile = new StreamWriter(this.logFile, true))
-                {
-                    outputFile.WriteLine(msg);
-                }
+            using (StreamWriter outputFile = new StreamWriter(this.logFile, true))
+            {
+                outputFile.WriteLine(msg);
+            }
             mux.ReleaseMutex();
-            
-            
+
+
         }
 
         public void AddCommand(Command cmm)
@@ -325,10 +340,14 @@ namespace PuppetMaster
         {
             if (this.sysConfig != null)
             {
-                foreach (OperatorSpec opList in this.sysConfig.Operators)
+                int length = this.sysConfig.Operators.Count;
+                for (int i = 0; i < length; i++)
                 {
-                    foreach (string url in opList.Addrs)
+
+                    OperatorSpec opList = this.sysConfig.Operators[i];
+                    for (int y = 0; y < opList.Addrs.Count; y++)
                     {
+                        String url = opList.Addrs[y];
                         try
                         {
                             IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
@@ -337,20 +356,28 @@ namespace PuppetMaster
                         }
                         catch (Exception)
                         {
+                            //TODO: DO SOMETHINGF?
                             // FOR NOW NOTHING
                         }
-
                     }
+
                 }
+                cleanDeadReps();
             }
 
             /* shutdown/crash PCS */
-            
-            
         }
 
+        private void cleanDeadReps()
+        {
+            foreach (string url in urlToRemove)
+            {
+                this.removeRep(url);
+            }
+            this.urlToRemove = new List<string>();
+        }
 
-        //TODO test method
+        //TODO test method pq que temos um methodo que chama um metodo??? por causa do teste qualuer
         public void removeUrl(string url)
         {
             removeRep(url);
@@ -361,28 +388,29 @@ namespace PuppetMaster
             lock (lockThis)
             {
                 List<OperatorSpec> aux = new List<OperatorSpec>(this.sysConfig.Operators);
-                bool b = false;
-                foreach (OperatorSpec op in aux)
+                bool found = false;
+
+                for (int i = 0; i < aux.Count; i++)
                 {
-                    foreach (string u in op.Addrs.ToList())
+                    OperatorSpec op = aux[i];
+                    for (int y = 0; y < op.Addrs.Count; y++)
                     {
+                        String u = op.Addrs[y];
                         if (u.Equals(url))
                         {
-                            //op.Addrs.Remove(url);
                             op.Addrs.RemoveAll(item => item.Equals(url));
                             List<string> temp = new List<string>(op.Addrs);
                             op.Addrs = temp;
-                            b = true;
+                            found = true;
                             break;
                         }
-
                     }
-                    if (b)
+                    if (found)
                         break;
                 }
                 this.sysConfig.Operators = new List<OperatorSpec>(aux);
-            }
 
+            }
         }
 
     }
@@ -397,7 +425,7 @@ namespace PuppetMaster
 
         void IPuppetMasterProxy.ReportTuple(string OpId, int RepId, OperatorTuple tuple)
         {
-            
+
             string aux = OpId + " | " + RepId + " | " + tuple.ToString();
             del = new WriteLog(controler.Writelog);
             del(aux);

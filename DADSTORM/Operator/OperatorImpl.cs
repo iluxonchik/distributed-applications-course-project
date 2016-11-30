@@ -162,10 +162,10 @@ namespace Operator
                 //TODO NULL not needed??
                 if (tupleX != null)
                 {
-                    //Console.WriteLine("Enviar: ");
-                    //foreach (string a in tupleX.Tuple)
-                    //    Console.Write(a + " | ");
-                    //Console.WriteLine();
+                    Console.WriteLine("Enviar: ");
+                    foreach (string a in tupleX.Tuple)
+                       Console.Write(a + " | ");
+                    Console.WriteLine();
                     SendTuple(tupleX);
 
                 }
@@ -246,10 +246,10 @@ namespace Operator
             {
                 lock (this)
                 {
-                    //Console.WriteLine("receive tuple");
-                    //foreach (string s in tuple.Tuple)
-                    //    Console.Write(s + " ");
-                    //Console.WriteLine();
+                    Console.WriteLine("receive tuple");
+                    foreach (string s in tuple.Tuple)
+                        Console.Write(s + " ");
+                    Console.WriteLine();
 
                     this.waitingTuples.Add(tuple);
                     Monitor.PulseAll(this);
@@ -280,6 +280,7 @@ namespace Operator
             string url = this.GetOutUrl(tuple);
             try
             {
+                
                 //Console.WriteLine("Send tuples to: " + url);
                 IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
                 //opServer.ReceiveTuple(tuple);
