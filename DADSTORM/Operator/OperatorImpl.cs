@@ -62,6 +62,7 @@ namespace Operator
         static readonly int MULTICAST_END_POINT = 2222;
         static readonly int DELTA_TIME = 1 * 10 * 1000;//min * seg * millisecund
         Dictionary<string, long> replicas;
+        //teste commit
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
             this.Spec = spec;
