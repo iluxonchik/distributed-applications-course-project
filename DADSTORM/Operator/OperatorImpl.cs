@@ -37,6 +37,7 @@ namespace Operator
 
         /// <summary>
         /// number of available threads to perferm the operations
+        /// 
         /// </summary>
         private int num_workers;
 
@@ -47,51 +48,70 @@ namespace Operator
         /// </summary>
         public List<OperatorTuple> waitingTuples { get; private set; }
 
-        /// <summary>
-        /// list of tuples already processed and ready to be outputed
-        /// </summary<>
-
-
         public const int DEFAULT_NUM_WORKERS = 1;
         public OperatorSpec Spec { get; private set; }
-
         protected readonly string BASE_DIR = Directory.GetCurrentDirectory();
         protected readonly string RESOURCES_DIR = Directory.GetCurrentDirectory() + @"\resources\";
-
         private static readonly string PM_ADDR_FMT = @"tcp://{0}:10001/PuppetMaster";
-
         private delegate void RemoteAsyncDelegate();
         private delegate void RemoteAsyncDelegateOperatorTuple(OperatorTuple ot);
         private delegate void RemoteAsyncDelegatePuppetMaster(string s, int i, OperatorTuple ot);
-
         public const int NUM_FAILURES = 2;
         Dictionary<string, int> countFails = new Dictionary<string, int>();
-
+        static readonly String MULTICAST_ADDRESS = "239.0.0.222";
+        static readonly int MULTICAST_END_POINT = 2222;
+        static readonly int DELTA_TIME = 1 * 10 * 1000;//min * seg * millisecund
+        Dictionary<string, long> replicas;
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
             this.Spec = spec;
             InitOp();
             RepId = repId;
             MyAddr = myAddr;
-            
+            readTuplesFile();
 
-            foreach (OperatorInput in_ in this.Spec.Inputs)
+            heartBeat();
+            //PrintWaitingTuples();
+            //init fault counter
+            InitFaultCounter();
+        }
+
+        private void heartBeat()
+        {
+            new Thread(() =>
             {
-                if (in_.Type.Equals(InputType.File))
+                Thread.CurrentThread.IsBackground = true;
+                MulticastServer server = new MulticastServer(MULTICAST_ADDRESS, MULTICAST_END_POINT);
+                Byte[] sendBytes = Encoding.ASCII.GetBytes(MyAddr);
+                while (true)
                 {
-                    // Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
-                    this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR+in_.Name)));
+                    server.sendHeartBeat(sendBytes);
+                    Thread.Sleep(DELTA_TIME);
                 }
-            }
-            //PrintWaitingTuples();{
-            if (this.Spec.OutputOperators != null)
+            }).Start();
+
+            new Thread(() =>
             {
-                if (this.Spec.OutputOperators.Count > 0)
+                Thread.CurrentThread.IsBackground = true;
+                MulticastClient client = new MulticastClient(MULTICAST_ADDRESS, MULTICAST_END_POINT);
+                while (true)
                 {
-                    foreach (string s in Spec.OutputOperators[0].Addresses)
-                        countFails.Add(s, 0);
+                    String url = client.receiveHeartBeat();
+
+                    //add value and replace old value if exists
+                    // de method add trows exception if key exists so better this way
+                    replicas[url] = getCurrentTime();
                 }
-            }
+            }).Start();
+        }
+
+
+
+        /// <returns>current time in milliecunds</returns>
+        private long getCurrentTime()
+        {
+            return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond);
+
         }
 
         public OperatorImpl()
@@ -105,9 +125,34 @@ namespace Operator
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
             this.waitingTuples = new List<OperatorTuple>();
-
+            replicas = new Dictionary<string, long>();
             initWorkers();
 
+        }
+
+
+        private void InitFaultCounter()
+        {
+            if (this.Spec.OutputOperators != null)
+            {
+                if (this.Spec.OutputOperators.Count > 0)
+                {
+                    foreach (string s in Spec.OutputOperators[0].Addresses)
+                        countFails.Add(s, 0);
+                }
+            }
+        }
+
+        private void readTuplesFile()
+        {
+            foreach (OperatorInput in_ in this.Spec.Inputs)
+            {
+                if (in_.Type.Equals(InputType.File))
+                {
+                    // Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
+                    this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR + in_.Name)));
+                }
+            }
         }
 
 
@@ -140,7 +185,7 @@ namespace Operator
                     if (!this.freeze)
                     {
                         if (this.interval > 0)
-                           Thread.Sleep(this.interval);
+                            Thread.Sleep(this.interval);
                         TreatTuple();
                         Monitor.PulseAll(this);
                     }
@@ -155,16 +200,16 @@ namespace Operator
             //TODO tratar LIst
             List<OperatorTuple> list = Operation(tuple);
 
-           foreach(OperatorTuple tupleX in list)
+            foreach (OperatorTuple tupleX in list)
             {
                 //Console.WriteLine("Tuple threated");
-                
+
                 //TODO NULL not needed??
                 if (tupleX != null)
                 {
                     Console.WriteLine("Enviar: ");
                     foreach (string a in tupleX.Tuple)
-                       Console.Write(a + " | ");
+                        Console.Write(a + " | ");
                     Console.WriteLine();
                     SendTuple(tupleX);
 
@@ -173,7 +218,6 @@ namespace Operator
 
             /* no need to save the tuple */
         }
-
 
         /// <summary>
         /// Commands accepted
@@ -187,13 +231,13 @@ namespace Operator
 
         public void Interval(int x_ms)
         {
-           
-                if (x_ms > 0)
-                {
 
-                    this.interval = x_ms;
-                }
-           
+            if (x_ms > 0)
+            {
+
+                this.interval = x_ms;
+            }
+
         }
 
         /// <summary>
@@ -203,20 +247,32 @@ namespace Operator
 
         protected void generalStatus()
         {
-            if(this.Spec.ReplicationFactor > 1)
+            if (this.Spec.ReplicationFactor > 1)
                 Console.WriteLine("TYPE:" + this.Spec.Type.ToString() + " | ID: " + this.Spec.Id + " | REP: " + this.RepId + " | PORT:" + myPort);
             else
                 Console.WriteLine("TYPE:" + this.Spec.Type.ToString() + " | ID: " + this.Spec.Id + " | PORT:" + myPort);
 
             Console.WriteLine("freeze = " + this.freeze);
+            List<String> aux = Spec.Addrs.ToList();
             Console.WriteLine("All my OP address: ");
-            foreach (string s in Spec.Addrs)
+            foreach (string s in aux)
                 Console.WriteLine("\t" + s);
             Console.WriteLine("Can send to: ");
-            foreach (string s in Spec.OutputOperators[0].Addresses)
-                Console.WriteLine("\t" + s);
-        }
+            foreach (OperatorOutput outop in Spec.OutputOperators)
+            {
+                aux = outop.Addresses.ToList();
+                foreach (string s in aux)
+                    Console.WriteLine("\t" + s);
+            }
 
+
+            Console.WriteLine("Alive reps:");
+            aux = this.replicas.Keys.ToList();
+            foreach (string s in aux)
+            {
+                Console.WriteLine("\t" + s);
+            }
+        }
 
         /// <summary>
         /// Debugging commands
@@ -235,7 +291,6 @@ namespace Operator
         {
             this.freeze = false;
         }
-
 
         /// <summary>
         /// Tuple manipulation commands
@@ -280,7 +335,7 @@ namespace Operator
             string url = this.GetOutUrl(tuple);
             try
             {
-                
+
                 //Console.WriteLine("Send tuples to: " + url);
                 IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
                 //opServer.ReceiveTuple(tuple);
@@ -317,7 +372,7 @@ namespace Operator
                     asyncServiceCall(opServer.ReceiveTuple, tuple, newUrl);
                     if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
                     {
-                        IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(typeof(IPuppetMasterProxy),String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+                        IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(typeof(IPuppetMasterProxy), String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
                         asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, tuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
                     }
 
@@ -331,7 +386,6 @@ namespace Operator
                 // Console.WriteLine(e.StackTrace);
             }
         }
-        
 
         private void asyncServiceCall(Action<OperatorTuple> method, OperatorTuple ot, string url)
         {
@@ -411,7 +465,7 @@ namespace Operator
             fails++;
 
             /* then is to remove */
-            if(fails >= NUM_FAILURES)
+            if (fails >= NUM_FAILURES)
             {
                 removeRep(url);
                 //this.countFails.Remove(url);
@@ -421,7 +475,6 @@ namespace Operator
                 this.countFails[url] = fails;
             }
         }
-
 
         public void removeUrl(string url)
         {
@@ -450,7 +503,6 @@ namespace Operator
             }
             this.Spec.OutputOperators = aux;
         }
-
 
         /// <summary>
         /// for the first delivery return index=0 because that is the only availale
@@ -481,7 +533,7 @@ namespace Operator
                     int max_arg = this.Spec.Routing.Arg - 1;
                     if (this.Spec.Routing.Arg > tuple.Tuple.Count)
                         max_arg = tuple.Tuple.Count - 1;
-                    int idxH = (int) CalculateHash(tuple.Tuple[max_arg], this.Spec.OutputOperators[0].Addresses.Count);
+                    int idxH = (int)CalculateHash(tuple.Tuple[max_arg], this.Spec.OutputOperators[0].Addresses.Count);
                     url = this.Spec.OutputOperators[0].Addresses[idxH];
                     // some hard cheat is going to happen here....
                     break;
@@ -489,7 +541,6 @@ namespace Operator
 
             return url;
         }
-        
 
         /* Hashing Functions */
         private int SimpleHash(string key, int length)
@@ -507,7 +558,7 @@ namespace Operator
             for (int i = 0; i < len; i++)
             {
                 hashCode ^= (hashCode << 5) + (hashCode >> 2) + key[i];
-            }    
+            }
             hashCode = (hashCode % (uint)d);
 
             return hashCode;
@@ -521,7 +572,6 @@ namespace Operator
              */
             return CalculateHash(key, d);
         }
-
 
         public List<OperatorTuple> ReadTuplesFromFile(FileInfo filePath)
         {
