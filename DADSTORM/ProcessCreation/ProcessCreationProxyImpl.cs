@@ -7,6 +7,7 @@ using ProcessCreationProxy;
 using ConfigTypes;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ProcessCreation
 {
@@ -21,9 +22,10 @@ namespace ProcessCreation
         public Process CreateOperator(OperatorSpec opSpec, string myAddr, int repId)
         {
             Console.WriteLine("CreateOperator called");
-            Directory.SetCurrentDirectory(operatorExecFile.Directory.FullName);
-           
-            FileInfo opFile = new FileInfo(Directory.GetCurrentDirectory() + "/operator/" + opSpec.Id);
+            
+            Directory.SetCurrentDirectory(operatorExecFile.Directory.FullName); // change to the OP directory OBRIGATORIO
+            /*
+            FileInfo opFile = new FileInfo(Directory.GetCurrentDirectory() + "/operator/" + opSpec.Id + "R" + repId);
 
             if (!opFile.Exists)
             {
@@ -33,12 +35,15 @@ namespace ProcessCreation
                 }
                 var myFile = File.Create(opFile.FullName);
                 myFile.Close(); 
-               
             }
-
             WriteToBinaryFile<OperatorSpec>(opFile.FullName, opSpec);
             return Process.Start(operatorExecFile.FullName, opFile.FullName + String.Format(" {0} {1}", myAddr, repId));
+            */
+
+            string spec = WriteToString(opSpec);
+            return Process.Start(operatorExecFile.FullName, spec + String.Format(" {0} {1}", myAddr, repId));
         }
+
         private static void WriteToBinaryFile<T>(string filePath, T opSpec)
         {
             //TODO: FIX remove short if from file open, since it is always
@@ -48,6 +53,19 @@ namespace ProcessCreation
                 binaryFormatter.Serialize(stream, opSpec);
             }
         }
+
+        private static string WriteToString(OperatorSpec spec)
+        {
+            byte[] a;
+            BinaryFormatter bf = new BinaryFormatter();
+            using (MemoryStream ms = new MemoryStream())
+            {
+                bf.Serialize(ms, spec);
+                a = ms.ToArray();
+            }
+            return Convert.ToBase64String(a);
+        }
+
 
         public void Crash()
         {

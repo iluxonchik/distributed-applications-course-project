@@ -20,6 +20,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestDll", "TestDll\TestDll.csproj", "{30576F1A-816D-4579-BA93-FAE77272E40C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreation", "ProcessCreation\ProcessCreation.csproj", "{18890597-F7BF-47EC-BAF1-5849D327C0CA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD} = {ACB5537C-ADD5-4E2B-BFF4-83F9BBCE0AFD}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProcessCreationProxy", "ProcessCreationProxy\ProcessCreationProxy.csproj", "{E8788CDC-7EAA-4FDA-839F-041C25ECE1B9}"
 EndProject

@@ -10,6 +10,7 @@ using System.Runtime.Remoting.Channels.Tcp;
 using System.Collections;
 using PuppetMasterProxy;
 using ConfigTypes;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Operator
 {
@@ -26,22 +27,26 @@ namespace Operator
             Console.WriteLine("Operator Program started");
             if (args.Length == 3)
             {
-                string fileName = args[0];
+                //string fileName = args[0];
                 string myAddr = args[1];
                 int repId = Int32.Parse(args[2]);
+                string spec = args[0];
 
                 //Console.WriteLine("path for config file " + fileName);
-                FileInfo file = new FileInfo(fileName);
-                if (file.Exists)
-                {
+                //FileInfo file = new FileInfo(fileName);
+                //if (file.Exists)
+                //{
 
                     try
                     {
                         //Console.WriteLine("config file name "+file.FullName);
-                        OperatorSpec opSpec = ReadFromBinaryFile<OperatorSpec>(file.FullName);
+                        //OperatorSpec opSpec = ReadFromBinaryFile<OperatorSpec>(file.FullName);
+                    
+                        OperatorSpec opSpec = ReadFromByteArray(spec);
                         OperatorImpl op = null;
-                        //Console.WriteLine("Parametros do config");
-                        //Console.WriteLine(opSpec.ToString());
+                        
+                        // Console.WriteLine("Parametros do config");
+                        // Console.WriteLine(opSpec.ToString());
 
                         switch (opSpec.Type)
                         {
@@ -96,21 +101,33 @@ namespace Operator
                     }
                 }
 
-            }
-            else
+            //}
+            /*else
             {
                 Console.WriteLine(INVD_ARGS);
-            }
+            }*/
 
             Console.ReadLine();
         }
+
         private static T ReadFromBinaryFile<T>(string filePath)
         {
-            using (Stream stream = File.Open(filePath, FileMode.Open))
+            using (Stream stream = File.Open(filePath, FileMode.Open, FileAccess.Read))
             {
                 var binaryFormatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
                 return (T)binaryFormatter.Deserialize(stream);
             }
         }
+
+        private static OperatorSpec ReadFromByteArray(string spec)
+        {
+            byte[] a = Convert.FromBase64String(spec);
+            MemoryStream memStream = new MemoryStream();
+            BinaryFormatter binForm = new BinaryFormatter();
+            memStream.Write(a, 0, a.Length);
+            memStream.Seek(0, SeekOrigin.Begin);
+            return (OperatorSpec)binForm.Deserialize(memStream);
+        }
+
     }
 }

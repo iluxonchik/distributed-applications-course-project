@@ -37,6 +37,7 @@ namespace Operator
 
         /// <summary>
         /// number of available threads to perferm the operations
+        /// 
         /// </summary>
         private int num_workers;
 
@@ -47,51 +48,44 @@ namespace Operator
         /// </summary>
         public List<OperatorTuple> waitingTuples { get; private set; }
 
-        /// <summary>
-        /// list of tuples already processed and ready to be outputed
-        /// </summary<>
-
-
         public const int DEFAULT_NUM_WORKERS = 1;
         public OperatorSpec Spec { get; private set; }
-
         protected readonly string BASE_DIR = Directory.GetCurrentDirectory();
         protected readonly string RESOURCES_DIR = Directory.GetCurrentDirectory() + @"\resources\";
-
         private static readonly string PM_ADDR_FMT = @"tcp://{0}:10001/PuppetMaster";
-
         private delegate void RemoteAsyncDelegate();
         private delegate void RemoteAsyncDelegateOperatorTuple(OperatorTuple ot);
         private delegate void RemoteAsyncDelegatePuppetMaster(string s, int i, OperatorTuple ot);
-
         public const int NUM_FAILURES = 2;
         Dictionary<string, int> countFails = new Dictionary<string, int>();
-
+        static readonly String MULTICAST_ADDRESS = "239.0.0.222";
+        static readonly int MULTICAST_END_POINT = 2222;
+        static readonly int DELTA_TIME = 1 * 60 * 1000;//min * seg * millisecund
+        Dictionary<string, long> allReplicas;
+        List<string> outReps;
+        bool lastOp = false;
+        //teste commit
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
             this.Spec = spec;
+
+
+            outReps = new List<string>();
+            if (this.Spec.OutputOperators != null)
+                foreach (OperatorOutput outOp in this.Spec.OutputOperators)
+                {
+                    outReps.AddRange(outOp.Addresses);
+                }
+            if (outReps.Count == 0)
+                lastOp = true;
             InitOp();
             RepId = repId;
             MyAddr = myAddr;
-            
+            readTuplesFile();
+            InitFaultCounter();
+            heartBeat();
+            //PrintWaitingTuples();
 
-            foreach (OperatorInput in_ in this.Spec.Inputs)
-            {
-                if (in_.Type.Equals(InputType.File))
-                {
-                    // Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
-                    this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR+in_.Name)));
-                }
-            }
-            //PrintWaitingTuples();{
-            if (this.Spec.OutputOperators != null)
-            {
-                if (this.Spec.OutputOperators.Count > 0)
-                {
-                    foreach (string s in Spec.OutputOperators[0].Addresses)
-                        countFails.Add(s, 0);
-                }
-            }
         }
 
         public OperatorImpl()
@@ -105,12 +99,73 @@ namespace Operator
             this.num_workers = DEFAULT_NUM_WORKERS;
             this.freeze = false;
             this.waitingTuples = new List<OperatorTuple>();
-
+            allReplicas = new Dictionary<string, long>();
             initWorkers();
 
         }
 
+        private void heartBeat()
+        {
+            //TODO:problemas de concurrencia
 
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                MulticastServer server = new MulticastServer(MULTICAST_ADDRESS, MULTICAST_END_POINT);
+                Byte[] sendBytes = Encoding.ASCII.GetBytes(MyAddr);
+                while (true)
+                {
+                   
+                    if (!freeze)
+                        server.sendHeartBeat(sendBytes);
+                    Thread.Sleep(DELTA_TIME);
+
+                }
+            }).Start();
+
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                MulticastClient client = new MulticastClient(MULTICAST_ADDRESS, MULTICAST_END_POINT);
+                while (true)
+                {
+                    String url = client.receiveHeartBeat();
+
+                    //add value and replace old value if exists
+                    // de method add trows exception if key exists so better this way
+                    lock (this)
+                    {
+                        allReplicas[url] = getCurrentTime();
+                        countFails[url] = 0;
+                    }
+                }
+            }).Start();
+        }
+        /// <returns>current time in milliecunds</returns>
+        private long getCurrentTime()
+        {
+            return (DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond);
+
+        }
+
+        private void InitFaultCounter()
+        {
+            foreach (string s in outReps)
+                countFails.Add(s, 0);
+        }
+
+        private void readTuplesFile()
+        {
+            foreach (OperatorInput in_ in this.Spec.Inputs)
+            {
+                if (in_.Type.Equals(InputType.File))
+                {
+                    // Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
+                    // this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR + in_.Name)));
+                    this.waitingTuples.AddRange(this.ReadTuples(RESOURCES_DIR + in_.Name));
+                }
+            }
+        }
         // Start all the workers at once
         private void initWorkers()
         {
@@ -123,7 +178,6 @@ namespace Operator
 
             }
         }
-
 
         /// <summary>
         /// Controlled consume
@@ -140,7 +194,7 @@ namespace Operator
                     if (!this.freeze)
                     {
                         if (this.interval > 0)
-                           Thread.Sleep(this.interval);
+                            Thread.Sleep(this.interval);
                         TreatTuple();
                         Monitor.PulseAll(this);
                     }
@@ -152,29 +206,31 @@ namespace Operator
         {
             OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
-            //TODO tratar LIst
+
             List<OperatorTuple> list = Operation(tuple);
 
-           foreach(OperatorTuple tupleX in list)
+            foreach (OperatorTuple tupleX in list)
             {
                 //Console.WriteLine("Tuple threated");
-                
-                //TODO NULL not needed??
-                if (tupleX != null)
-                {
-                    Console.WriteLine("Enviar: ");
-                    foreach (string a in tupleX.Tuple)
-                       Console.Write(a + " | ");
-                    Console.WriteLine();
-                    SendTuple(tupleX);
 
+                //TODO NULL not needed??
+                //if (tupleX != null)
+                //{
+                //Console.WriteLine("Enviar: ");
+                //foreach (string a in tupleX.Tuple)
+                //    Console.Write(a + " | ");
+                //Console.WriteLine();
+                if (!lastOp)
+                    SendTuple(tupleX);
+                else
+                {
+                    Console.WriteLine("lastOP");
                 }
+                //}
             }
 
             /* no need to save the tuple */
         }
-
-
         /// <summary>
         /// Commands accepted
         /// </summary>
@@ -187,13 +243,13 @@ namespace Operator
 
         public void Interval(int x_ms)
         {
-           
-                if (x_ms > 0)
-                {
 
-                    this.interval = x_ms;
-                }
-           
+            if (x_ms > 0)
+            {
+
+                this.interval = x_ms;
+            }
+
         }
 
         /// <summary>
@@ -203,20 +259,32 @@ namespace Operator
 
         protected void generalStatus()
         {
-            if(this.Spec.ReplicationFactor > 1)
+            if (this.Spec.ReplicationFactor > 1)
                 Console.WriteLine("TYPE:" + this.Spec.Type.ToString() + " | ID: " + this.Spec.Id + " | REP: " + this.RepId + " | PORT:" + myPort);
             else
                 Console.WriteLine("TYPE:" + this.Spec.Type.ToString() + " | ID: " + this.Spec.Id + " | PORT:" + myPort);
 
             Console.WriteLine("freeze = " + this.freeze);
+            List<String> aux = Spec.Addrs.ToList();
             Console.WriteLine("All my OP address: ");
-            foreach (string s in Spec.Addrs)
+
+            foreach (string s in aux)
                 Console.WriteLine("\t" + s);
             Console.WriteLine("Can send to: ");
-            foreach (string s in Spec.OutputOperators[0].Addresses)
-                Console.WriteLine("\t" + s);
-        }
 
+            foreach (string s in this.getAliveOutReps())
+                Console.WriteLine("\t" + s);
+
+            Console.WriteLine("All reps:");
+            lock (this)
+            {
+                aux = allReplicas.Keys.ToList();
+            }
+            foreach (string s in aux)
+            {
+                Console.WriteLine("\t" + s);
+            }
+        }
 
         /// <summary>
         /// Debugging commands
@@ -235,7 +303,6 @@ namespace Operator
         {
             this.freeze = false;
         }
-
 
         /// <summary>
         /// Tuple manipulation commands
@@ -278,60 +345,51 @@ namespace Operator
         public void SendTuple(OperatorTuple tuple)
         {
             string url = this.GetOutUrl(tuple);
-            try
-            {
-                
-                //Console.WriteLine("Send tuples to: " + url);
-                IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
-                //opServer.ReceiveTuple(tuple);
-                asyncServiceCall(opServer.ReceiveTuple, tuple, url);
-
-                // send tuple to PuppetMaster
-                if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
+            if (url != null)
+                try
                 {
-                    //Console.WriteLine("send tuples to ppm");
-                    IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
-                        typeof(IPuppetMasterProxy),
-                        String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+                    Console.WriteLine("Enviar: ");
+                    foreach (string a in tuple.Tuple)
+                        Console.Write(a + " | ");
+                    Console.WriteLine();
+                    //Console.WriteLine("Send tuples to: " + url);
+                    IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
+                    //opServer.ReceiveTuple(tuple);
+                    asyncServiceCall(opServer.ReceiveTuple, tuple, url);
 
-                    //obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
-                    asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, tuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
-
-
-                }
-
-            }
-            catch (SocketException)
-            {
-                new Thread(() =>
-                {
-                    Thread.CurrentThread.IsBackground = true;
-                    string newUrl = this.GetOutUrl(tuple);
-                    while (url == newUrl)
-                    {
-                        Thread.Sleep(5000); /* just to make sure if the next OP will remove it failed or not */
-                        newUrl = this.GetOutUrl(tuple);
-                    }
-                    /* make simple call to new OP available */
-                    IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), newUrl);
-                    asyncServiceCall(opServer.ReceiveTuple, tuple, newUrl);
+                    // send tuple to PuppetMaster
                     if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
                     {
-                        IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(typeof(IPuppetMasterProxy),String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+                        //Console.WriteLine("send tuples to ppm");
+                        IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
+                            typeof(IPuppetMasterProxy),
+                            String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+
+                        //obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
                         asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, tuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+
+
                     }
 
-                }).Start();
-            }
-            catch (Exception e)
-            {
-                //TODO: we probably dont want to catch all but for now 
-                // what we do may depends on semantics
-                Console.WriteLine("lastOP");
-                // Console.WriteLine(e.StackTrace);
-            }
+                }
+                catch (SocketException)
+                {
+                    new Thread(() =>
+                    {
+                        Thread.CurrentThread.IsBackground = true;
+                    //TODO: se der merda a culpa e do paulo
+                    SendTuple(tuple);
+
+                    }).Start();
+                }
+                catch (Exception e)
+                {
+                    //TODO: we probably dont want to catch all but for now 
+                    // what we do may depends on semantics
+                    Console.WriteLine("\t\tCan not send tuple");
+                    //Console.WriteLine(e.StackTrace);
+                }
         }
-        
 
         private void asyncServiceCall(Action<OperatorTuple> method, OperatorTuple ot, string url)
         {
@@ -346,8 +404,10 @@ namespace Operator
             }
             catch (SocketException)
             {
-                //Console.WriteLine("Could not locate OP: {0}", url);
-                isToRemove(url);
+                lock (this)
+                {
+                    this.countFails[url]++;
+                }
                 throw new SocketException(); // send top to retry
             }
             catch (Exception)
@@ -369,33 +429,10 @@ namespace Operator
             }
             catch (SocketException)
             {
-                // Console.WriteLine("Could not locate server");
-                // Console.WriteLine("Going to remove PuppetMaster: {0}", url);
-                // isToRemove(url);
-                // throw new SocketException(); // send top to retry
-            }
-            catch (Exception)
-            {
-                // TODO some weird error
-            }
-        }
-
-        private void asyncServiceCall(Action method, string url)
-        {
-            try
-            {
-                RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(method);
-                // Call delegate to remote method
-                IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
-                // Wait for the end of the call and then explictly call EndInvoke
-                RemAr.AsyncWaitHandle.WaitOne();
-                RemoteDel.EndInvoke(RemAr);
-            }
-            catch (SocketException)
-            {
-                // Console.WriteLine("Could not locate server");
-                // Console.WriteLine("Going to remove in General: {0}", url);
-                isToRemove(url);
+                lock (this)
+                {
+                    this.countFails[url]++;
+                }
                 throw new SocketException(); // send top to retry
             }
             catch (Exception)
@@ -404,100 +441,155 @@ namespace Operator
             }
         }
 
+        //private void asyncServiceCall(Action method, string url)
+        //{
+        //    try
+        //    {
+        //        RemoteAsyncDelegate RemoteDel = new RemoteAsyncDelegate(method);
+        //        // Call delegate to remote method
+        //        IAsyncResult RemAr = RemoteDel.BeginInvoke(null, null);
+        //        // Wait for the end of the call and then explictly call EndInvoke
+        //        RemAr.AsyncWaitHandle.WaitOne();
+        //        RemoteDel.EndInvoke(RemAr);
+        //    }
+        //    catch (SocketException)
+        //    {
+        //        throw new SocketException(); // send top to retry
+        //    }
+        //    catch (Exception)
+        //    {
+        //        // TODO some weird error
+        //    }
+        //}
+
         public void isToRemove(string url)
         {
-            // Console.WriteLine("I've been called to remove: {0}", url);
-            int fails = this.countFails[url];
-            fails++;
-
-            /* then is to remove */
-            if(fails >= NUM_FAILURES)
+            lock (this)
             {
-                removeRep(url);
-                //this.countFails.Remove(url);
-            }
-            else /* just save the new value */
-            {
-                this.countFails[url] = fails;
-            }
-        }
-
-
-        public void removeUrl(string url)
-        {
-            removeRep(url);
-        }
-
-        private void removeRep(string url)
-        {
-            List<OperatorOutput> aux = new List<OperatorOutput>(this.Spec.OutputOperators);
-            bool b = false;
-            foreach (OperatorOutput op in aux)
-            {
-                foreach (string u in op.Addresses)
+                /* then is to remove */
+                if (this.countFails[url] >= NUM_FAILURES)
                 {
-                    if (u.Equals(url))
-                    {
-                        op.Addresses.Remove(url);
-                        b = true;
-                        Console.WriteLine("Just removed: {0}", url);
-                        break;
-                    }
-
+                    Console.WriteLine("Replica removida: {0}", url);
+                    this.allReplicas.Remove(url);
                 }
-                if (b)
-                    break;
+                else /* just save the new value */
+                {
+                    this.countFails[url]++;
+                }
             }
-            this.Spec.OutputOperators = aux;
         }
 
+        //public void removeUrl(string url)
+        //{
+        //    removeRep(url);
+        //}
+
+        //private void removeRep(string url)
+        //{
+
+        //    //TODO: este metodo nao deve ser preciso
+        //    List<OperatorOutput> aux = new List<OperatorOutput>(this.Spec.OutputOperators);
+        //    bool b = false;
+        //    foreach (OperatorOutput op in aux)
+        //    {
+        //        foreach (string u in op.Addresses)
+        //        {
+        //            if (u.Equals(url))
+        //            {
+        //                op.Addresses.Remove(url);
+        //                b = true;
+        //                Console.WriteLine("Just removed: {0}", url);
+        //                break;
+        //            }
+
+        //        }
+        //        if (b)
+        //            break;
+        //    }
+        //    this.Spec.OutputOperators = aux;
+        //}
 
         /// <summary>
         /// for the first delivery return index=0 because that is the only availale
         /// </summary>
         /// <returns></returns>
+
+
         private string GetOutUrl(OperatorTuple tuple)
         {
             //routing 
             // FIX check null of url on call method
-            if (this.Spec.OutputOperators == null)
+
+            List<string> aliveOutReps = getAliveOutReps();
+            Console.WriteLine("possivel url:");
+            foreach (string s in aliveOutReps)
+            {
+                Console.WriteLine("\t\t" + s);
+            }
+           
+            if (aliveOutReps.Count <= 0)
                 return null;
-            if (this.Spec.OutputOperators.Count <= 0)
-                return null;
-            if (this.Spec.OutputOperators[0].Addresses.Count <= 0)
-                return null;
+
+
             string url = null;
 
             switch (this.Spec.Routing.Type)
             {
                 case RoutingType.Primary:
-                    url = this.Spec.OutputOperators[0].Addresses[0];
+                    url = aliveOutReps[0];
                     break;
                 case RoutingType.Random:
-                    int idxR = new Random().Next(0, this.Spec.OutputOperators[0].Addresses.Count);
-                    url = this.Spec.OutputOperators[0].Addresses[idxR];
+                    int idxR = new Random().Next(0, aliveOutReps.Count);
+                    url = aliveOutReps[idxR];
                     break;
                 case RoutingType.Hashing:
                     int max_arg = this.Spec.Routing.Arg - 1;
                     if (this.Spec.Routing.Arg > tuple.Tuple.Count)
                         max_arg = tuple.Tuple.Count - 1;
-                    int idxH = (int) CalculateHash(tuple.Tuple[max_arg], this.Spec.OutputOperators[0].Addresses.Count);
-                    url = this.Spec.OutputOperators[0].Addresses[idxH];
+                    int idxH = (int)CalculateHash(tuple.Tuple[max_arg], aliveOutReps.Count);
+                    url = aliveOutReps[idxH];
                     // some hard cheat is going to happen here....
                     break;
             }
 
             return url;
         }
-        
 
-        /* Hashing Functions */
-        private int SimpleHash(string key, int length)
+        private bool isAlive(string url)
         {
-            int res = 0;
-            res = Math.Abs(key.GetHashCode() % length);
-            return res;
+            try
+            {
+                long lastSeen = 0;
+                lock (this)
+                {
+                    lastSeen = this.allReplicas[url];
+                }
+                if ((this.getCurrentTime() - lastSeen) <= (NUM_FAILURES * DELTA_TIME) && this.countFails[url] < NUM_FAILURES)
+                {
+                    return true;
+                }
+                lock (this)
+                {
+                    Console.WriteLine("Replica removida: {0}", url);
+                    this.allReplicas.Remove(url);
+                }
+                
+            }
+            catch (KeyNotFoundException)
+            {
+                return false;
+            }
+            return false;
         }
+        /* Hashing Functions */
+        //remove
+
+        //private int SimpleHash(string key, int length)
+        //{
+        //    int res = 0;
+        //    res = Math.Abs(key.GetHashCode() % length);
+        //    return res;
+        //}
 
         private uint CalculateHash(string key, int d)
         {
@@ -507,7 +599,7 @@ namespace Operator
             for (int i = 0; i < len; i++)
             {
                 hashCode ^= (hashCode << 5) + (hashCode >> 2) + key[i];
-            }    
+            }
             hashCode = (hashCode % (uint)d);
 
             return hashCode;
@@ -522,6 +614,17 @@ namespace Operator
             return CalculateHash(key, d);
         }
 
+        private List<String> getAliveOutReps()
+        {
+            List<string> aliveOutReps = new List<string>();
+            foreach (string s in this.outReps)
+            {
+                if (this.isAlive(s))
+                    aliveOutReps.Add(s);
+
+            }
+            return aliveOutReps;
+        }
 
         public List<OperatorTuple> ReadTuplesFromFile(FileInfo filePath)
         {
@@ -537,6 +640,33 @@ namespace Operator
                 List<string> tuple = new List<string>(aux);
 
                 tuples.Add(new OperatorTuple(tuple));
+            }
+            return tuples;
+        }
+
+        public List<OperatorTuple> ReadTuples(string filePath)
+        {
+            List<OperatorTuple> tuples = new List<OperatorTuple>();
+            
+            using (FileStream fileStream = new FileStream(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read))
+            {
+                using (StreamReader streamReader = new StreamReader(fileStream))
+                {
+                    streamReader.ReadLine(); // skip first two
+                    streamReader.ReadLine(); // skip first two
+                    var line = streamReader.ReadLine();
+                    while (line != null)
+                    {
+                        string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
+                        List<string> tuple = new List<string>(aux);
+                        tuples.Add(new OperatorTuple(tuple));
+                        line = streamReader.ReadLine();
+                    }
+                }
             }
             return tuples;
         }
