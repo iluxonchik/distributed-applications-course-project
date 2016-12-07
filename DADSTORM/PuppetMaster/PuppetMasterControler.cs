@@ -275,9 +275,9 @@ namespace PuppetMaster
             catch (SocketException)
             {
                 // Console.WriteLine("Could not locate server");
-                this.Writelog("Unable to contact OP " + url);
+                this.Writelog("Error while contacting OP " + url);
                 //removeRep(url);
-                urlToRemove.Add(url);
+                //urlToRemove.Add(url);
             }
             catch (Exception)
             {
@@ -299,9 +299,9 @@ namespace PuppetMaster
             catch (SocketException)
             {
                 // Console.WriteLine("Could not locate server");
-                this.Writelog("Unable to contact OP " + url);
+                this.Writelog("Error while contacting OP " + url);
                 //removeRep(url);
-                urlToRemove.Add(url);
+                //urlToRemove.Add(url);
             }
             catch (Exception)
             {

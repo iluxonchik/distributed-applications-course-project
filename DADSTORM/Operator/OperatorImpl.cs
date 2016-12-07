@@ -161,7 +161,8 @@ namespace Operator
                 if (in_.Type.Equals(InputType.File))
                 {
                     // Console.WriteLine("directoria: " + RESOURCES_DIR + in_.Name);
-                    this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR + in_.Name)));
+                    // this.waitingTuples.AddRange(this.ReadTuplesFromFile(new FileInfo(RESOURCES_DIR + in_.Name)));
+                    this.waitingTuples.AddRange(this.ReadTuples(RESOURCES_DIR + in_.Name));
                 }
             }
         }
@@ -639,6 +640,33 @@ namespace Operator
                 List<string> tuple = new List<string>(aux);
 
                 tuples.Add(new OperatorTuple(tuple));
+            }
+            return tuples;
+        }
+
+        public List<OperatorTuple> ReadTuples(string filePath)
+        {
+            List<OperatorTuple> tuples = new List<OperatorTuple>();
+            
+            using (FileStream fileStream = new FileStream(
+            filePath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read))
+            {
+                using (StreamReader streamReader = new StreamReader(fileStream))
+                {
+                    streamReader.ReadLine(); // skip first two
+                    streamReader.ReadLine(); // skip first two
+                    var line = streamReader.ReadLine();
+                    while (line != null)
+                    {
+                        string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
+                        List<string> tuple = new List<string>(aux);
+                        tuples.Add(new OperatorTuple(tuple));
+                        line = streamReader.ReadLine();
+                    }
+                }
             }
             return tuples;
         }
