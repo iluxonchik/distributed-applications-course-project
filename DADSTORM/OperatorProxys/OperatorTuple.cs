@@ -11,6 +11,7 @@ namespace OperatorProxys
     {
         private string stringRepr; // used for string represenation caching
         public List<string> Tuple { get; private set; }
+
         /// <summary>
         /// Id of the tuple (used for Exactly-Once-Semantics, to make sure that there are not duplicate
         /// operations executed. This ID only gets set to a new value when a tuple is read from a file
@@ -19,6 +20,11 @@ namespace OperatorProxys
         /// creation of this new tuple).
         /// </summary>
         public string Id { get; private set; }
+        /// <summary>
+        /// Indicates wether the receiver is a "parent" (i.e. if he needs to forward the result to the next operator in chain
+        /// or if he should just compute and store it.
+        /// </summary>
+        public bool YouAreParent { get; set; } = true;
 
         public OperatorTuple(List<String> tuple, string id)
         {

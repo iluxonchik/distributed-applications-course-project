@@ -60,7 +60,7 @@ namespace Operator
         Dictionary<string, int> countFails = new Dictionary<string, int>();
         static readonly String MULTICAST_ADDRESS = "239.0.0.222";
         static readonly int MULTICAST_END_POINT = 2222;
-        static readonly int DELTA_TIME = 1 * 60 * 1000; //min * seg * millisecund
+        static readonly int DELTA_TIME = 1 * 60 * 1000; // min * seg * millisecond
         Dictionary<string, long> allReplicas;
         List<string> outReps;
         bool lastOp = false;
@@ -69,6 +69,14 @@ namespace Operator
         public Semantics Semantics { get; private set; } // for easy access
         protected int counter = 0; // used to assign IDs to newly created operators
         protected string MyId { get; private set; } // for easy access
+        /// <summary>
+        /// {tuple_id : {tuple, timestamp}}
+        /// </summary>
+        Dictionary<string, OutgoingTuple> tuplesAwaitingACK = new Dictionary<string, OutgoingTuple>();
+        static readonly ulong MAX_WAIT_FOR_TUPLE_DELIVERY = 5 * 1000; // 5 seconds
+        static readonly ulong ACK_WATCHDOG_INTERVAL = 2 * 1000; // 2 seconds
+
+        protected Dictionary<string, List<OperatorTuple>> resultsCache = new Dictionary<string, List<OperatorTuple>>();
 
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
@@ -207,12 +215,36 @@ namespace Operator
             }
         }
 
+        /// <summary>
+        /// Gets the tuple from the waiting tuples list and treats it.
+        /// </summary>
         private void TreatTuple()
         {
             OperatorTuple tuple = this.waitingTuples.First();
             this.waitingTuples.RemoveAt(0);
 
-            List<OperatorTuple> list = Operation(tuple);
+            List<OperatorTuple> list;
+
+            if (Semantics == Semantics.ExactlyOnce)
+            {
+                // check if result stored
+                // if yes, retrieve, if no compute and store in table
+                List<OperatorTuple> result = resultsCache.Get(tuple.Id);
+                if (result == null)
+                { 
+                    list = Operation(tuple);
+                    resultsCache.Add(tuple.Id, list);
+                }
+                else
+                {
+                    list = result;
+                }
+            }
+            else
+            {
+                list = Operation(tuple);
+
+            }
 
             foreach (OperatorTuple tupleX in list)
             {
@@ -226,9 +258,28 @@ namespace Operator
                 //    Console.Write(a + " | ");
                 //Console.WriteLine();
                 if (!lastOp)
-                    SendTuple(tupleX);
+                    if (Semantics == Semantics.ExactlyOnce)
+                    {
+                        // if I'm not the parent, don't send the tuple (replication functionality)
+                        if (tupleX.YouAreParent)
+                        {
+                            Console.WriteLine("I am the parent, so I'm sending the tuple");
+                            SendTuple(tupleX);
+                        } else
+                        {
+                            // empty, don't send the tuple
+                            Console.WriteLine("I'm not the parent, so I'm not forwarding the tuple");
+                        }
+                       
+                    }
+                    else
+                    {
+                        SendTuple(tupleX);
+                    }
                 else
                 {
+                    // TODO: NOTE: this will cause issues when using ExactlyOnce semanthics with the last operator,
+                    // the same check for parent should be done at the last one.
                     Console.WriteLine("lastOP");
                 }
                 //}
@@ -236,6 +287,7 @@ namespace Operator
 
             /* no need to save the tuple */
         }
+
         /// <summary>
         /// Commands accepted
         /// </summary>
@@ -318,6 +370,12 @@ namespace Operator
             {
                 lock (this)
                 {
+
+                    if (Semantics == Semantics.ExactlyOnce)
+                    {
+                        // TODO: check if result
+                    }
+
                     Console.WriteLine("receive tuple");
                     foreach (string s in tuple.Tuple)
                         Console.Write(s + " ");
@@ -353,6 +411,14 @@ namespace Operator
             if (url != null)
                 try
                 {
+
+                    if (Semantics == Semantics.ExactlyOnce)
+                    {
+                        tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = (ulong)getCurrentTime() });
+                        // TODO: init watchdog therad
+                        // TODO: implement ACKs
+                    }
+
                     Console.WriteLine("Enviar: ");
                     foreach (string a in tuple.Tuple)
                         Console.Write(a + " | ");
@@ -427,7 +493,7 @@ namespace Operator
             {
                 RemoteAsyncDelegatePuppetMaster RemoteDel = new RemoteAsyncDelegatePuppetMaster(method);
                 // Call delegate to remote method
-                IAsyncResult RemAr = RemoteDel.BeginInvoke(s, i, ot, null, null);
+                IAsyncResult RemAr = RemoteDel.BeginInvoke(s, i, ot, null, null); 
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
                 RemoteDel.EndInvoke(RemAr);
