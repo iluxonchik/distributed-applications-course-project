@@ -631,26 +631,6 @@ namespace Operator
             return aliveOutReps;
         }
 
-        public List<OperatorTuple> ReadTuplesFromFile(FileInfo filePath)
-        {
-            List<OperatorTuple> tuples = new List<OperatorTuple>();
-            System.IO.StreamReader file = new System.IO.StreamReader(filePath.FullName);
-
-            //http://stackoverflow.com/questions/25471521/split-string-by-commas-ignoring-any-punctuation-marks-including-in-quotati
-            // it does not remove the quote marks but if all url's have quote marks then it does not matter
-
-            foreach (var line in File.ReadAllLines(filePath.FullName).Skip(2))
-            {
-                string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
-                List<string> tuple = new List<string>(aux);
-                // this is the "origin" of a tuple in the stream, so create a new Id for it. This ID
-                // will be the same for the whole stream.
-                string newId = GetNewId();
-                tuples.Add(new OperatorTuple(tuple, newId));
-            }
-            return tuples;
-        }
-
         private string GetNewId()
         {
             string id = string.Format("{0}{1}", MyId, counter);

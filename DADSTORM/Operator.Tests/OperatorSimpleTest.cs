@@ -201,18 +201,18 @@ namespace Operator.Tests
             FileInfo f = new FileInfo(tweetersFile1);
             Assert.That(Is.Equals(f.Exists, true));
 
-            List<OperatorTuple> tuples = dop.ReadTuplesFromFile(f);
+            List<OperatorTuple> tuples = dop.ReadTuples(f.FullName);
             Assert.That(Is.Equals(tuples.Count, 1));
             Assert.That(Is.Equals(tuples[0].Tuple[0], "1"));
             Assert.That(Is.Equals(tuples[0].Tuple[1], "user3"));
             Assert.That(Is.Equals(tuples[0].Tuple[2], "\"www.tecnico.ulisboa.pt\""));
 
             //---------------------------------------//
-             dop = new DupOperator();
-             f = new FileInfo(tweetersFile);
+            dop = new DupOperator();
+            f = new FileInfo(tweetersFile);
             Assert.That(Is.Equals(f.Exists, true));
 
-            tuples = dop.ReadTuplesFromFile(f);
+            tuples = dop.ReadTuples(f.FullName);
             Assert.That(Is.Equals(tuples.Count, 12));
             Assert.That(Is.Equals(tuples[11].Tuple[0], "12"));
             Assert.That(Is.Equals(tuples[11].Tuple[1], "user5"));
@@ -223,7 +223,7 @@ namespace Operator.Tests
             f = new FileInfo(followersFile1);
             Assert.That(Is.Equals(f.Exists, true));
 
-            tuples = dop.ReadTuplesFromFile(f);
+            tuples = dop.ReadTuples(f.FullName);
             Assert.That(Is.Equals(tuples.Count, 1));
             Assert.That(Is.Equals(tuples[0].Tuple[0], "user2"));
             Assert.That(Is.Equals(tuples[0].Tuple[1], "user10"));
@@ -233,7 +233,7 @@ namespace Operator.Tests
             f = new FileInfo(followersFile);
             Assert.That(Is.Equals(f.Exists, true));
 
-            tuples = dop.ReadTuplesFromFile(f);
+            tuples = dop.ReadTuples(f.FullName);
             Assert.That(Is.Equals(tuples.Count, 13));
             Assert.That(Is.Equals(tuples[12].Tuple[0], "user11"));
             Assert.That(Is.Equals(tuples[12].Tuple[1], "user6"));
