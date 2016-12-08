@@ -220,31 +220,23 @@ namespace Operator
         /// </summary>
         private void TreatTuple()
         {
-            OperatorTuple tuple = this.waitingTuples.First();
-            this.waitingTuples.RemoveAt(0);
-
-            List<OperatorTuple> list;
 
             if (Semantics == Semantics.ExactlyOnce)
             {
-                // check if result stored
-                // if yes, retrieve, if no compute and store in table
-                List<OperatorTuple> result = resultsCache.Get(tuple.Id);
-                if (result == null)
-                { 
-                    list = Operation(tuple);
-                    resultsCache.Add(tuple.Id, list);
-                }
-                else
-                {
-                    list = result;
-                }
-            }
-            else
+                TreatTupleExactlyOnce();
+            } else
             {
-                list = Operation(tuple);
-
+                TreatTupleDefault();
             }
+
+        }
+
+        private void TreatTupleDefault()
+        {
+            OperatorTuple tuple = this.waitingTuples.First();
+            this.waitingTuples.RemoveAt(0);
+
+            List<OperatorTuple> list = Operation(tuple);
 
             foreach (OperatorTuple tupleX in list)
             {
@@ -258,23 +250,59 @@ namespace Operator
                 //    Console.Write(a + " | ");
                 //Console.WriteLine();
                 if (!lastOp)
-                    if (Semantics == Semantics.ExactlyOnce)
+                    SendTuple(tupleX);
+                else
+                {
+                    Console.WriteLine("lastOP");
+                }
+                //}
+            }
+        }
+
+        private void TreatTupleExactlyOnce()
+        {
+            OperatorTuple tuple = this.waitingTuples.First();
+            this.waitingTuples.RemoveAt(0);
+
+            List<OperatorTuple> list;
+
+            // check if result stored
+            // if yes, retrieve, if no compute and store in table
+            List<OperatorTuple> result = resultsCache.Get(tuple.Id);
+            if (result == null)
+            {
+                list = Operation(tuple);
+                resultsCache.Add(tuple.Id, list);
+            }
+            else
+            {
+                list = result;
+            }
+            
+            
+            foreach (OperatorTuple tupleX in list)
+            {
+                //Console.WriteLine("Tuple threated");
+
+                //TODO NULL not needed??
+                //if (tupleX != null)
+                //{
+                //Console.WriteLine("Enviar: ");
+                //foreach (string a in tupleX.Tuple)
+                //    Console.Write(a + " | ");
+                //Console.WriteLine();
+                if (!lastOp)
+                   
+                    // if I'm not the parent, don't send the tuple (replication functionality)
+                    if (tupleX.YouAreParent)
                     {
-                        // if I'm not the parent, don't send the tuple (replication functionality)
-                        if (tupleX.YouAreParent)
-                        {
-                            Console.WriteLine("I am the parent, so I'm sending the tuple");
-                            SendTuple(tupleX);
-                        } else
-                        {
-                            // empty, don't send the tuple
-                            Console.WriteLine("I'm not the parent, so I'm not forwarding the tuple");
-                        }
-                       
+                        Console.WriteLine("I am the parent, so I'm sending the tuple");
+                        SendTuple(tupleX);
                     }
                     else
                     {
-                        SendTuple(tupleX);
+                        // empty, don't send the tuple
+                        Console.WriteLine("I'm not the parent, so I'm not forwarding the tuple");
                     }
                 else
                 {
@@ -284,8 +312,6 @@ namespace Operator
                 }
                 //}
             }
-
-            /* no need to save the tuple */
         }
 
         /// <summary>
@@ -366,15 +392,23 @@ namespace Operator
         /// </summary>
         public void ReceiveTuple(OperatorTuple tuple)
         {
+                
+            if (Semantics == Semantics.ExactlyOnce)
+            {
+                ReceiveTupleExactlyOnce(tuple);
+            }
+             else
+            {
+                ReceiveTupleOriginal(tuple);
+            }
+        }
+
+        private void ReceiveTupleOriginal(OperatorTuple tuple)
+        {
             while (true)
             {
                 lock (this)
                 {
-
-                    if (Semantics == Semantics.ExactlyOnce)
-                    {
-                        // TODO: check if result
-                    }
 
                     Console.WriteLine("receive tuple");
                     foreach (string s in tuple.Tuple)
@@ -386,7 +420,28 @@ namespace Operator
                     break;
                 }
             }
+        }
 
+        private void ReceiveTupleExactlyOnce(OperatorTuple tuple)
+        {
+            while (true)
+            {
+                lock (this)
+                {
+                    if (tuple.YouAreParent)
+                    {
+                        // TODO: clone tuple, set YouAreParent to False and forward it to all children
+                    }
+                    Console.WriteLine("receive tuple");
+                    foreach (string s in tuple.Tuple)
+                        Console.Write(s + " ");
+                    Console.WriteLine();
+
+                    this.waitingTuples.Add(tuple);
+                    Monitor.PulseAll(this);
+                    break;
+                }
+            }
         }
 
         public void ReceiveTuples(List<OperatorTuple> tuples)
@@ -407,17 +462,77 @@ namespace Operator
         //routing for check point is primary and We only have one replica for each operator
         public void SendTuple(OperatorTuple tuple)
         {
+
+            if (Semantics == Semantics.ExactlyOnce)
+            {
+                SendTupleExactlyOnce(tuple);
+            } else
+            {
+                SendTupleOriginal(tuple);
+            }
+        }
+
+        private void SendTupleOriginal(OperatorTuple tuple)
+        {
+            string url = this.GetOutUrl(tuple);
+            if (url != null)
+                try
+                {
+                    Console.WriteLine("Enviar: ");
+                    foreach (string a in tuple.Tuple)
+                        Console.Write(a + " | ");
+                    Console.WriteLine();
+                    //Console.WriteLine("Send tuples to: " + url);
+                    IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
+                    //opServer.ReceiveTuple(tuple);
+                    asyncServiceCall(opServer.ReceiveTuple, tuple, url);
+
+                    // send tuple to PuppetMaster
+                    if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
+                    {
+                        //Console.WriteLine("send tuples to ppm");
+                        IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
+                            typeof(IPuppetMasterProxy),
+                            String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+
+                        //obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
+                        asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, tuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+
+
+                    }
+
+                }
+                catch (SocketException)
+                {
+                    new Thread(() =>
+                    {
+                        Thread.CurrentThread.IsBackground = true;
+                        //TODO: se der merda a culpa e do paulo
+                        SendTuple(tuple);
+
+                    }).Start();
+                }
+                catch (Exception e)
+                {
+                    //TODO: we probably dont want to catch all but for now 
+                    // what we do may depends on semantics
+                    Console.WriteLine("\t\tCan not send tuple");
+                    //Console.WriteLine(e.StackTrace);
+                }
+        }
+
+        private void SendTupleExactlyOnce(OperatorTuple tuple)
+        {
             string url = this.GetOutUrl(tuple);
             if (url != null)
                 try
                 {
 
-                    if (Semantics == Semantics.ExactlyOnce)
-                    {
-                        tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = (ulong)getCurrentTime() });
-                        // TODO: init watchdog therad
-                        // TODO: implement ACKs
-                    }
+                    
+                    tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = (ulong)getCurrentTime() });
+                    // TODO: init watchdog therad
+                    // TODO: implement ACKs
+                    
 
                     Console.WriteLine("Enviar: ");
                     foreach (string a in tuple.Tuple)
@@ -448,8 +563,8 @@ namespace Operator
                     new Thread(() =>
                     {
                         Thread.CurrentThread.IsBackground = true;
-                    //TODO: se der merda a culpa e do paulo
-                    SendTuple(tuple);
+                        //TODO: se der merda a culpa e do paulo
+                        SendTuple(tuple);
 
                     }).Start();
                 }
