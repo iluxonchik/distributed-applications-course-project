@@ -68,7 +68,7 @@ namespace Operator
 
                         foreach (List<string> t in ((IEnumerable)result))
                         {
-                            theRes.Add(new OperatorTuple(t));
+                            theRes.Add(new OperatorTuple(t, tuple.Id));
                         }
                         /*
                         Console.Write("FOR tuple: ");

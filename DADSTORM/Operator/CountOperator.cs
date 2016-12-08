@@ -32,7 +32,7 @@ namespace Operator
             List<OperatorTuple> list = new List<OperatorTuple>();
             List<String> temp = new List<String>();
             temp.Add(countResult.ToString());
-            list.Add(new OperatorTuple(temp));
+            list.Add(new OperatorTuple(temp, tuple.Id));
 
             return list;
         }

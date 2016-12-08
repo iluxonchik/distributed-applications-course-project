@@ -60,15 +60,19 @@ namespace Operator
         Dictionary<string, int> countFails = new Dictionary<string, int>();
         static readonly String MULTICAST_ADDRESS = "239.0.0.222";
         static readonly int MULTICAST_END_POINT = 2222;
-        static readonly int DELTA_TIME = 1 * 60 * 1000;//min * seg * millisecund
+        static readonly int DELTA_TIME = 1 * 60 * 1000; //min * seg * millisecund
         Dictionary<string, long> allReplicas;
         List<string> outReps;
         bool lastOp = false;
-        //teste commit
+
+        // Variables used in Exactly-Once-Semantics
+        public Semantics Semantics { get; private set; } // for easy access
+        protected int counter = 0; // used to assign IDs to newly created operators
+        protected string MyId { get; private set; } // for easy access
+
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
             this.Spec = spec;
-
 
             outReps = new List<string>();
             if (this.Spec.OutputOperators != null)
@@ -85,7 +89,8 @@ namespace Operator
             InitFaultCounter();
             heartBeat();
             //PrintWaitingTuples();
-
+            Semantics = spec.Semantics;
+            MyId = spec.Id;
         }
 
         public OperatorImpl()
@@ -638,10 +643,19 @@ namespace Operator
             {
                 string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
                 List<string> tuple = new List<string>(aux);
-
-                tuples.Add(new OperatorTuple(tuple));
+                // this is the "origin" of a tuple in the stream, so create a new Id for it. This ID
+                // will be the same for the whole stream.
+                string newId = GetNewId();
+                tuples.Add(new OperatorTuple(tuple, newId));
             }
             return tuples;
+        }
+
+        private string GetNewId()
+        {
+            string id = string.Format("{0}{1}", MyId, counter);
+            counter++; //update counter for next iteration
+            return id;
         }
 
         public List<OperatorTuple> ReadTuples(string filePath)
@@ -663,7 +677,10 @@ namespace Operator
                     {
                         string[] aux = Regex.Split(line, @", (?=(?:""[^""]*?(?: [^""]*)*))|, (?=[^"",]+(?:,|$))");
                         List<string> tuple = new List<string>(aux);
-                        tuples.Add(new OperatorTuple(tuple));
+                        // this is the "origin" of a tuple in the stream, so create a new Id for it. This ID
+                        // will be the same for the whole stream.
+                        string newId = GetNewId();
+                        tuples.Add(new OperatorTuple(tuple, newId));
                         line = streamReader.ReadLine();
                     }
                 }
