@@ -47,9 +47,11 @@
     <Compile Include="CountOperator.cs" />
     <Compile Include="CustomOperator.cs" />
     <Compile Include="DupOperator.cs" />
+    <Compile Include="ExtensionMethods.cs" />
     <Compile Include="FilterOperator.cs" />
     <Compile Include="MulticastClient.cs" />
     <Compile Include="MulticastServer.cs" />
+    <Compile Include="OutgoingTuple.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="UniqOperator.cs" />
     <Compile Include="OperatorImpl.cs" />

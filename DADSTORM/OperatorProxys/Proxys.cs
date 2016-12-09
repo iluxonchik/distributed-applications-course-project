@@ -80,6 +80,18 @@ namespace OperatorProxys
         /// </summary>
         /// <param name="tuple"></param>
         void ReceiveTuple(OperatorTuple tuple);
+
+        /// <summary>
+        /// Send acknowledge that the tuple was forwarded to downstream operator.
+        /// </summary>
+        /// <param name="tupleId"></param>
+        void SendACK(OperatorTuple tuple);
+
+        /// <summary>
+        /// Receive acknowledge that the tuple was forwarded to downstream operator.
+        /// </summary>
+        /// <param name="tupleId"></param>
+        void ReceiveACK(OperatorTuple tuple);
     }
     
 }

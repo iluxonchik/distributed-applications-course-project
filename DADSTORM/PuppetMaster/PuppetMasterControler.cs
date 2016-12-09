@@ -333,6 +333,7 @@ namespace PuppetMaster
             this.sysConfig.commands.Enqueue(cmm);
         }
 
+
         /*
          * To crash all operator when closing form
          */
@@ -348,21 +349,22 @@ namespace PuppetMaster
                     for (int y = 0; y < opList.Addrs.Count; y++)
                     {
                         String url = opList.Addrs[y];
-                        try
-                        {
-                            IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
-                            asyncServiceCall(op.Crash, url);
 
-                        }
-                        catch (Exception)
+                        // TO SPEED UP CREATE THREAD
+                        new Thread(() =>
                         {
-                            //TODO: DO SOMETHINGF?
-                            // FOR NOW NOTHING
-                        }
+                            try
+                            {
+                                IProcessingNodesProxy op = (IProcessingNodesProxy)Activator.GetObject(typeof(IProcessingNodesProxy), url);
+                                asyncServiceCall(op.Crash, url);
+                            }
+                            catch (Exception)
+                            {
+                                // LETS HOPE THE WORLD IS NICE TO US AND THIS IS NOT NECESSARY
+                            }
+                        }).Start();
                     }
-
                 }
-                cleanDeadReps();
             }
 
             /* shutdown/crash PCS */
