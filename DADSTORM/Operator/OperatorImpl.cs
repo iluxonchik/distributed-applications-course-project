@@ -133,23 +133,27 @@ namespace Operator
                 while (true)
                 {
 
-                    // check the ACK table, if necesary schedule a re-send
-                    foreach (KeyValuePair<string, OutgoingTuple> kvp in tuplesAwaitingACK)
+                    lock (tuplesAwaitingACKLock)
                     {
-                        if (CheckTupleNeedsScheduling(kvp.Value))
+                        // check the ACK table, if necesary schedule a re-send
+                        foreach (KeyValuePair<string, OutgoingTuple> kvp in tuplesAwaitingACK)
                         {
-                            if (DEBUG_GERAL)
-                                Console.WriteLine(string.Format("Watchdog thread: tuple {0} re-scheduled for sending", kvp.Value.Tuple));
-                            tuplesAwaitingACK.Remove(kvp.Key); // NOTE: order important here: first remove, then add to waitingTuples queue
-                            waitingTuples.Add(kvp.Value.Tuple);
-                        }
-                        else
-                        {
-                            // Shouldn't do anything (no-op)
-                            if (DEBUG_GERAL)
-                                Console.WriteLine(string.Format("Watchdog thread: tuple {0} DOES NOT need scheduling for re-sending yet", kvp.Value.Tuple));
+                            if (CheckTupleNeedsScheduling(kvp.Value))
+                            {
+                                if (DEBUG_GERAL)
+                                    Console.WriteLine(string.Format("Watchdog thread: tuple {0} re-scheduled for sending", kvp.Value.Tuple));
+                                tuplesAwaitingACK.Remove(kvp.Key); // NOTE: order important here: first remove, then add to waitingTuples queue
+                                waitingTuples.Add(kvp.Value.Tuple);
+                            }
+                            else
+                            {
+                                // Shouldn't do anything (no-op)
+                                if (DEBUG_GERAL)
+                                    Console.WriteLine(string.Format("Watchdog thread: tuple {0} DOES NOT need scheduling for re-sending yet", kvp.Value.Tuple));
+                            }
                         }
                     }
+
                     Thread.Sleep(ACK_WATCHDOG_INTERVAL);
                 }
             }
@@ -533,7 +537,7 @@ namespace Operator
                 {
                     if (DEBUG_GERAL)
                     {
-                        Console.WriteLine("receive tuple");
+                        Console.WriteLine("received tuple");
                         foreach (string s in tuple.Tuple)
                             Console.Write(s + " ");
                         Console.WriteLine();
@@ -561,9 +565,15 @@ namespace Operator
                         List<string> myAliveReps = GetMyAliveReps();
                         foreach (string url in myAliveReps)
                         {
-                            IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
-                            asyncServiceCall(opServer.ReceiveTuple, childTuple, url);
-
+                            try
+                            {
+                                IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
+                                asyncServiceCall(opServer.ReceiveTuple, childTuple, url);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.StackTrace);
+                            }
                         }
                     }
 
@@ -739,6 +749,9 @@ namespace Operator
                 {
                     tuple.SenderUrl = MyAddr; // just to be extra sure that the ACK arrives to the right place
 
+                    if (DEBUG_GERAL)
+                        Console.WriteLine("=============================> {0}", tuple.Id);
+
                     if (DEBUG)
                     {
                         Console.WriteLine("SendTupleExactlyOnce(): Sending tuple: ");
@@ -750,8 +763,10 @@ namespace Operator
 
                     // send tuple to the downstream operator
                     asyncServiceCall(opServer.ReceiveTuple, tuple, url);
-                    tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = getCurrentTime() });
-
+                    lock (tuplesAwaitingACKLock)
+                    {
+                        tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = getCurrentTime() });
+                    }
                     // send tuple to PuppetMaster
                     if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
                     {
