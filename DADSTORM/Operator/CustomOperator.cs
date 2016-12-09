@@ -28,6 +28,8 @@ namespace Operator
         /// </summary>
         private string method_;
 
+        private int counter = 0;
+
         public CustomOperator(OperatorSpec spec,string dll_d, string class_c, string method_m, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             dll_ = Directory.GetCurrentDirectory() + "\\" + dll_d;
@@ -69,7 +71,8 @@ namespace Operator
 
                         foreach (List<string> t in ((IEnumerable)result))
                         {
-                            theRes.Add(new OperatorTuple(t, tuple.Id, MyAddr));
+                            theRes.Add(new OperatorTuple(t, MyId + counter, MyAddr));
+                            counter++;
                         }
                         /*
                         Console.Write("FOR tuple: ");

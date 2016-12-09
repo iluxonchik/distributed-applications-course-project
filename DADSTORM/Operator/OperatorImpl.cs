@@ -428,7 +428,7 @@ namespace Operator
 
             for (int i = 0; i < list.Count; i++)
             {
-                OperatorTuple tupleX = list[i];
+                OperatorTuple tupleX = list[i]; ;
                 OperatorTuple newTuple = tupleX.Clone();
                 newTuple.SenderUrl = MyAddr;
                 if (tupleX != null)
