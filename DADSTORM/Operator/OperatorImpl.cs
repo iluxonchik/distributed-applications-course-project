@@ -81,6 +81,8 @@ namespace Operator
         /// </summary>
         protected List<string> myReplicasURLs = new List<string>();
 
+        private static object tuplesAwaitingACKLock = new object(); // TODO: is this needed? (unused for now)
+
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
             this.Spec = spec;
@@ -120,11 +122,11 @@ namespace Operator
             new Thread(() =>
             {
                 Thread.CurrentThread.IsBackground = true;
-                while(true)
+                while (true)
                 {
 
                     // check the ACK table, if necesary schedule a re-send
-                    foreach(KeyValuePair<string, OutgoingTuple> kvp in tuplesAwaitingACK)
+                    foreach (KeyValuePair<string, OutgoingTuple> kvp in tuplesAwaitingACK)
                     {
                         if (CheckTupleNeedsScheduling(kvp.Value))
                         {
@@ -977,5 +979,16 @@ namespace Operator
             }
         }
 
+        public void SendACK(string tupleId)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        public void ReceiveACK(string tupleId)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
     }
 }
