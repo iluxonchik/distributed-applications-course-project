@@ -85,13 +85,13 @@ namespace OperatorProxys
         /// Send acknowledge that the tuple was forwarded to downstream operator.
         /// </summary>
         /// <param name="tupleId"></param>
-        void SendACK(string tupleId);
+        void SendACK(OperatorTuple tuple);
 
         /// <summary>
         /// Receive acknowledge that the tuple was forwarded to downstream operator.
         /// </summary>
         /// <param name="tupleId"></param>
-        void ReceiveACK(string tupleId);
+        void ReceiveACK(OperatorTuple tuple);
     }
     
 }

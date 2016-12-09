@@ -369,7 +369,7 @@ namespace Operator
                     {
                         Console.WriteLine("TreatTupleExactlyOnce(): I am the parent, so I'm sending the tuple");
                         SendTuple(tupleX);
-                        // TODO: send ACK to previous operator
+                        SendACK(tupleX);
                     }
                     else
                     {
@@ -634,9 +634,6 @@ namespace Operator
             if (url != null)
                 try
                 {
-                    // TODO: init watchdog therad
-                    // TODO: implement ACKs
-
                     tuple.SenderUrl = MyAddr; // just to be extra sure that the ACK arrives to the right place
 
                     Console.WriteLine("SendTupleExactlyOnce(): Sending tuple: ");
@@ -979,16 +976,31 @@ namespace Operator
             }
         }
 
-        public void SendACK(string tupleId)
+        public void SendACK(OperatorTuple tuple)
         {
-            // TODO
-            throw new NotImplementedException();
+            OperatorTuple newTuple = tuple.Clone();
+            newTuple.SenderUrl = MyAddr;
+            Console.WriteLine(string.Format("SendACK(): ACKing tuple with ID = {0}. Sending ACK to tuple at URL = {1}", tuple.Id, tuple.SenderUrl));
+            IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), tuple.SenderUrl);
+            asyncServiceCall(opServer.ReceiveACK, newTuple, tuple.SenderUrl);
         }
 
-        public void ReceiveACK(string tupleId)
+        public void ReceiveACK(OperatorTuple tuple)
         {
-            // TODO
-            throw new NotImplementedException();
+            Console.WriteLine(string.Format("ReceiveACK(): Received ACK for tuple with ID={0} from Operator at Addr={1}", tuple.Id, tuple.SenderUrl));
+            lock (tuplesAwaitingACKLock)
+            {
+                if (tuplesAwaitingACK.ContainsKey(tuple.Id))
+                {
+                    Console.WriteLine(string.Format("\tFound tuple with ID={0} in tuplesAwaitingACK, removing...", tuple.Id));
+                    tuplesAwaitingACK.Remove(tuple.Id);
+                }
+                else
+                {
+                    // Do nothing
+                    Console.WriteLine(string.Format("\tWARN: Tuple with ID={0} not found in tuplesAwaitingACK.", tuple.Id));
+                }
+            }
         }
     }
 }
