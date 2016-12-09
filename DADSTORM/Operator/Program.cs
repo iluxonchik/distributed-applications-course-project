@@ -44,7 +44,7 @@ namespace Operator
                     
                         OperatorSpec opSpec = ReadFromByteArray(spec);
                         OperatorImpl op = null;
-                        
+                        Console.Title = opSpec.Id + " " + repId + " " + myAddr;
                         // Console.WriteLine("Parametros do config");
                         // Console.WriteLine(opSpec.ToString());
 

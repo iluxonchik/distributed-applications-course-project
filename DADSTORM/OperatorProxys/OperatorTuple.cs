@@ -52,7 +52,7 @@ namespace OperatorProxys
         {
             if (stringRepr != null)
                 return stringRepr;
-            stringRepr = String.Format("ID: {0} | YouAreParent: {1} | SenderUrl: {2}", Id, YouAreParent, SenderUrl);
+            stringRepr = String.Format("ID: {0} | YouAreParent: {1} | SenderUrl: {2}\n", Id, YouAreParent, SenderUrl);
             foreach (string s in this.Tuple)
             {
                 stringRepr += s + " ";

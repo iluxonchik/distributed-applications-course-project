@@ -67,7 +67,7 @@ namespace Operator
         static readonly int DELTA_TIME = 30 * 1000; // min * seg * millisecond
         Dictionary<string, long> allReplicas;
         List<string> outReps;
-        bool lastOp = false;
+        protected bool lastOp = false;
 
         // Variables used in Exactly-Once-Semantics
         public Semantics Semantics { get; private set; } // for easy access
@@ -371,6 +371,7 @@ namespace Operator
 
             List<OperatorTuple> list = Operation(tuple);
 
+
             /*
             if ((Spec.Type == OperatorType.Custom) && RepId == 0 && !lastOp)
                 Crash();
@@ -421,6 +422,7 @@ namespace Operator
             else
             {
                 list = result;
+                SendACK(tuple);
             }
 
 
