@@ -5,7 +5,7 @@ namespace Operator
     internal class OutgoingTuple
     {
         public OperatorTuple Tuple { get; set; }
-        public ulong TimeSent { get; set; }
+        public long TimeSent { get; set; }
 
     }
 }

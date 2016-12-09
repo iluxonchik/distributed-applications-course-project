@@ -72,8 +72,8 @@ namespace Operator
         /// {tuple_id : {tuple, timestamp}}
         /// </summary>
         Dictionary<string, OutgoingTuple> tuplesAwaitingACK = new Dictionary<string, OutgoingTuple>();
-        static readonly ulong MAX_WAIT_FOR_TUPLE_DELIVERY = 5 * 1000; // 5 seconds
-        static readonly ulong ACK_WATCHDOG_INTERVAL = 2 * 1000; // 2 seconds
+        static readonly int MAX_WAIT_FOR_TUPLE_DELIVERY = 5 * 1000; // 5 seconds
+        static readonly int ACK_WATCHDOG_INTERVAL = 2 * 1000; // 2 seconds
         
         protected Dictionary<string, List<OperatorTuple>> resultsCache = new Dictionary<string, List<OperatorTuple>>();
         /// <summary>
@@ -93,6 +93,7 @@ namespace Operator
                 }
 
             InitMyReplicaURLs(MyAddr, myReplicasURLs);
+            StartWatchdogThread();
 
             if (outReps.Count == 0)
             {
@@ -109,6 +110,49 @@ namespace Operator
             MyId = spec.Id;
         }
 
+        private void StartWatchdogThread()
+        {
+            if (Semantics != Semantics.ExactlyOnce)
+            {
+                // only start the new thread for ExactlyOnceSemantics
+                return;
+            }
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+                while(true)
+                {
+
+                    // check the ACK table, if necesary schedule a re-send
+                    foreach(KeyValuePair<string, OutgoingTuple> kvp in tuplesAwaitingACK)
+                    {
+                        if (CheckTupleNeedsScheduling(kvp.Value))
+                        {
+                            Console.WriteLine(string.Format("Watchdog thread: tuple {0} re-scheduled for sending", kvp.Value.Tuple));
+                            tuplesAwaitingACK.Remove(kvp.Key); // NOTE: order important here: first remove, then add to waitingTuples queue
+                            waitingTuples.Add(kvp.Value.Tuple);
+                        }
+                        else
+                        {
+                            // Shouldn't do anything (no-op)
+                            Console.WriteLine(string.Format("Watchdog thread: tuple {0} DOES NOT need scheduling for re-sending yet", kvp.Value.Tuple));
+                        }
+                    }
+                    Thread.Sleep(ACK_WATCHDOG_INTERVAL);
+                }
+            }
+            ).Start();
+        }
+
+        /// <summary>
+        /// Check whether the tuple needs to be scheduled for re-sending.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private bool CheckTupleNeedsScheduling(OutgoingTuple value)
+        {
+            return (this.getCurrentTime() - value.TimeSent) > MAX_WAIT_FOR_TUPLE_DELIVERY;
+        }
 
         public OperatorImpl()
         {
@@ -602,7 +646,7 @@ namespace Operator
                     
                     // send tuple to the downstream operator
                     asyncServiceCall(opServer.ReceiveTuple, tuple, url);
-                    tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = (ulong)getCurrentTime() });
+                    tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = getCurrentTime() });
 
                     // send tuple to PuppetMaster
                     if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))

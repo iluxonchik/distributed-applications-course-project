@@ -46,7 +46,7 @@ namespace Operator
 
         public override List<OperatorTuple> Operation(OperatorTuple tuple)
         {
-
+            // TODO: BUG when multiple replicas execute on the same machine (see issue #48)
             Assembly assembly = Assembly.LoadFile(dll_);
             if (assembly != null)
             {
