@@ -96,6 +96,7 @@ namespace Operator
                     catch (Exception e)
                     {
                         Console.WriteLine(ERR_CONF_FILE);
+                        Console.WriteLine(e.Message);
                         Console.WriteLine(e.StackTrace);
 
                     }

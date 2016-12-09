@@ -84,10 +84,10 @@ namespace Operator
                         return theRes;
                     }
                     else
-                        throw new NullReferenceException("No method " + method_ + "END");
+                        throw new NullReferenceException("No method " + method_ );
                 }
                 else
-                    throw new NullReferenceException("No type " + class_ + "END");
+                    throw new NullReferenceException("No type " + class_);
             }
             else
                 throw new NullReferenceException("No assembly");
