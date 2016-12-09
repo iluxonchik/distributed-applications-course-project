@@ -416,12 +416,14 @@ namespace Operator
             List<OperatorTuple> result = resultsCache.Get(tuple.Id);
             if (result == null)
             {
+                Console.WriteLine("TreatTupleExactlyOnce(): Tuple not found in cache, computing and storing.");
                 list = Operation(tuple);
                 resultsCache.Add(tuple.Id, list);
             }
             else
             {
                 list = result;
+                Console.WriteLine("TreatTupleExactlyOnce(): Found in cache tuple {0}", list);
                 SendACK(tuple);
             }
 
@@ -467,7 +469,7 @@ namespace Operator
                         }
                         else
                         {
-                            // I'm not the paret, so I'm not gonna send the tuple
+                            // I'm not the parent, so I'm not gonna send the tuple
                             // This "else" block shouldn't do anything, it's here just to print a debug message
                             if (DEBUG)
                                 Console.WriteLine("TreatTupleExactlyOnce(): I'm not the parent, so I'm not forwarding the tuple");
@@ -475,8 +477,6 @@ namespace Operator
                     }
                     else
                     {
-                        // TODO: NOTE: this will cause issues when using ExactlyOnce semantics with the last operator,
-                        // the same check for parent should be done at the last one.
                         if (DEBUG)
                             Console.WriteLine("lastOP");
                     }
@@ -606,6 +606,7 @@ namespace Operator
                     Console.WriteLine("\tReceiveTupleExactlyOnce(): Cloned tuple...");
                     List<string> myAliveReps = GetMyAliveReps();
                     Console.WriteLine("ReceiveTupleExactlyOnce(): myAliveReps.Count = {0}", myAliveReps.Count);
+
                     foreach (string url in myAliveReps)
                     {
                         try
@@ -1018,7 +1019,9 @@ namespace Operator
             catch (KeyNotFoundException)
             {
                 Console.WriteLine("isAlive(): KeyNotFoundExeption. Returning false...");
-                return false;
+                // let's assume that it's okay just this one time
+                allReplicas[url] = getCurrentTime();
+                return true;
             }
 
             Console.WriteLine("isAlive(): Returning false...");
