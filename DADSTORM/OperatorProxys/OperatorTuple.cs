@@ -26,18 +26,26 @@ namespace OperatorProxys
         /// </summary>
         public bool YouAreParent { get; set; } = true;
 
-        public OperatorTuple(List<String> tuple, string id)
+        /// <summary>
+        /// URL of the Operator that sent this tuple. This is needed to send the ACK in Exactly-Once-Semantics.
+        /// </summary>
+        public string SenderUrl { get; set; }
+
+        public OperatorTuple(List<String> tuple, string id, string senderUrl)
         {
             Id = id;
-            this.Tuple = tuple;
-            this.stringRepr = null;
+            SenderUrl = senderUrl;
+            Tuple = tuple;
+            stringRepr = null;
+
         }
 
-        public void SetTuple(List<String> tuple, string id)
+        public void SetTuple(List<String> tuple, string id, string senderUrl)
         {
             Id = id;
-            this.Tuple = tuple;
-            this.stringRepr = null;
+            SenderUrl = senderUrl;
+            Tuple = tuple;
+            stringRepr = null;
         }
 
         public override string ToString()

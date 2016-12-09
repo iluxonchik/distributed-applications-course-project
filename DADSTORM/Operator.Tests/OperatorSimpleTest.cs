@@ -16,14 +16,16 @@ namespace Operator.Tests
     public class OperatorSimpleTest : OperatorBaseTestFixture
     {
         private static readonly string TUPLE_ID = "You would do it if my name was Dre?";
+        private static readonly string SENDER_ADDR = "tcp://compton:8400";
+
         private string operatorPathExec = BASE_DIR + @"../../../../Operator/bin/Debug/Operator.exe";
         /// <summary>
         /// simple variables to be used in the test
         /// </summary>
-        private static readonly OperatorTuple tuple1 = new OperatorTuple(new List<string> { "test1", "test2", "test3", "Ola", "ola" }, TUPLE_ID);
-        private static readonly OperatorTuple tuple2 = new OperatorTuple(new List<string> { "test4", "test5", "test6", "test6" }, TUPLE_ID);
+        private static readonly OperatorTuple tuple1 = new OperatorTuple(new List<string> { "test1", "test2", "test3", "Ola", "ola" }, TUPLE_ID, SENDER_ADDR);
+        private static readonly OperatorTuple tuple2 = new OperatorTuple(new List<string> { "test4", "test5", "test6", "test6" }, TUPLE_ID, SENDER_ADDR);
 
-        private static readonly OperatorTuple tuple3 = new OperatorTuple(new List<string> { "test1", "test2", "test3" }, TUPLE_ID);
+        private static readonly OperatorTuple tuple3 = new OperatorTuple(new List<string> { "test1", "test2", "test3" }, TUPLE_ID, SENDER_ADDR);
 
         private readonly List<OperatorTuple> tuples = new List<OperatorTuple> { tuple1, tuple2 };
 
@@ -121,7 +123,7 @@ namespace Operator.Tests
 
             /* the tuple which content should be result */
             List<string> tupleCompare = new List<string> { "test1", "test2", "test3", "test1", "test2", "test3" };
-            OperatorTuple ot = new OperatorTuple(tupleCompare, TUPLE_ID);
+            OperatorTuple ot = new OperatorTuple(tupleCompare, TUPLE_ID, SENDER_ADDR);
 
             /* invoke operation */
             List<OperatorTuple> aux = co.Operation(ot);

@@ -19,7 +19,6 @@ namespace Operator
     public abstract class OperatorImpl : MarshalByRefObject, IOperatorProxy, IProcessingNodesProxy
     {
 
-
         //private bool start { get; set; }
         private volatile bool freeze;
 
@@ -75,8 +74,12 @@ namespace Operator
         Dictionary<string, OutgoingTuple> tuplesAwaitingACK = new Dictionary<string, OutgoingTuple>();
         static readonly ulong MAX_WAIT_FOR_TUPLE_DELIVERY = 5 * 1000; // 5 seconds
         static readonly ulong ACK_WATCHDOG_INTERVAL = 2 * 1000; // 2 seconds
-
+        
         protected Dictionary<string, List<OperatorTuple>> resultsCache = new Dictionary<string, List<OperatorTuple>>();
+        /// <summary>
+        /// List of urls of this replica (excluding the url of this replica itelf).
+        /// </summary>
+        protected List<string> myReplicasURLs = new List<string>();
 
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
@@ -88,8 +91,13 @@ namespace Operator
                 {
                     outReps.AddRange(outOp.Addresses);
                 }
+
+            InitMyReplicaURLs(MyAddr, myReplicasURLs);
+
             if (outReps.Count == 0)
+            {
                 lastOp = true;
+            }
             InitOp();
             RepId = repId;
             MyAddr = myAddr;
@@ -100,6 +108,7 @@ namespace Operator
             Semantics = spec.Semantics;
             MyId = spec.Id;
         }
+
 
         public OperatorImpl()
         {
@@ -115,6 +124,22 @@ namespace Operator
             allReplicas = new Dictionary<string, long>();
             initWorkers();
 
+        }
+
+        /// <summary>
+        /// Initializes the list of urls of replicas of this operator.
+        /// </summary>
+        /// <param name="myAddr"></param>
+        /// <param name="myReplicasURLs"></param>
+        private void InitMyReplicaURLs(string myAddr, List<string> myReplicasURLs)
+        {
+            foreach(string url in Spec.Addrs)
+            {
+                if (url != myAddr)
+                {
+                    myReplicasURLs.Add(url);
+                }
+            }
         }
 
         private void heartBeat()
@@ -282,7 +307,7 @@ namespace Operator
             
             foreach (OperatorTuple tupleX in list)
             {
-                //Console.WriteLine("Tuple threated");
+                //Console.WriteLine("Tuple treated");
 
                 //TODO NULL not needed??
                 //if (tupleX != null)
@@ -296,17 +321,19 @@ namespace Operator
                     // if I'm not the parent, don't send the tuple (replication functionality)
                     if (tupleX.YouAreParent)
                     {
-                        Console.WriteLine("I am the parent, so I'm sending the tuple");
+                        Console.WriteLine("TreatTupleExactlyOnce(): I am the parent, so I'm sending the tuple");
                         SendTuple(tupleX);
+                        // TODO: send ACK to previous operator
                     }
                     else
                     {
-                        // empty, don't send the tuple
-                        Console.WriteLine("I'm not the parent, so I'm not forwarding the tuple");
+                        // I'm not the paret, so I'm not gonna send the tuple
+                        // This "else" block shouldn't do anything, it's here just to print a debug message
+                        Console.WriteLine("TreatTupleExactlyOnce(): I'm not the parent, so I'm not forwarding the tuple");
                     }
                 else
                 {
-                    // TODO: NOTE: this will cause issues when using ExactlyOnce semanthics with the last operator,
+                    // TODO: NOTE: this will cause issues when using ExactlyOnce semantics with the last operator,
                     // the same check for parent should be done at the last one.
                     Console.WriteLine("lastOP");
                 }
@@ -431,17 +458,51 @@ namespace Operator
                     if (tuple.YouAreParent)
                     {
                         // TODO: clone tuple, set YouAreParent to False and forward it to all children
-                    }
-                    Console.WriteLine("receive tuple");
-                    foreach (string s in tuple.Tuple)
-                        Console.Write(s + " ");
-                    Console.WriteLine();
+                        OperatorTuple childTuple = tuple.Clone();
+                        childTuple.YouAreParent = false;
 
+                        List<string> myAliveReps = GetMyAliveReps();
+                        foreach(string url in myAliveReps)
+                        {
+                            IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
+                            asyncServiceCall(opServer.ReceiveTuple, childTuple, url);
+                          
+                        }
+                    }
+
+                    Console.WriteLine("ReceiveTupleExactlyOnce(): Received a tuple");
+                    foreach (string s in tuple.Tuple)
+                    {
+                        Console.Write("\t" + s + " ");
+                    }
+                    Console.WriteLine();
+                    
+                    // The decision of whether the tuple should be processed or retrieved from cache
+                    // is done in TreatTuple() method.
                     this.waitingTuples.Add(tuple);
                     Monitor.PulseAll(this);
                     break;
                 }
             }
+        }
+
+        private List<string> GetMyAliveReps()
+        {
+            List<string> aliveOutReps = new List<string>();
+            Console.WriteLine(string.Format("GetMyAliveReps(): Getting list of my alive replicas... [total replicas = {}]", aliveOutReps.Count));
+            foreach (string url in this.myReplicasURLs)
+            { 
+                if (this.isAlive(url))
+                {
+                    Console.WriteLine(string.Format("\t{} is alive", url));
+                    aliveOutReps.Add(url);
+                }
+                else
+                {
+                    Console.WriteLine(string.Format("\t{} is down"), url);
+                }
+            }
+            return aliveOutReps;
         }
 
         public void ReceiveTuples(List<OperatorTuple> tuples)
@@ -512,7 +573,7 @@ namespace Operator
 
                     }).Start();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //TODO: we probably dont want to catch all but for now 
                     // what we do may depends on semantics
@@ -527,21 +588,21 @@ namespace Operator
             if (url != null)
                 try
                 {
-
-                    
-                    tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = (ulong)getCurrentTime() });
                     // TODO: init watchdog therad
                     // TODO: implement ACKs
-                    
 
-                    Console.WriteLine("Enviar: ");
+                    tuple.SenderUrl = MyAddr; // just to be extra sure that the ACK arrives to the right place
+
+                    Console.WriteLine("SendTupleExactlyOnce(): Sending tuple: ");
                     foreach (string a in tuple.Tuple)
-                        Console.Write(a + " | ");
+                        Console.Write("\t" + a + " | ");
                     Console.WriteLine();
-                    //Console.WriteLine("Send tuples to: " + url);
+
                     IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
-                    //opServer.ReceiveTuple(tuple);
+                    
+                    // send tuple to the downstream operator
                     asyncServiceCall(opServer.ReceiveTuple, tuple, url);
+                    tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = (ulong)getCurrentTime() });
 
                     // send tuple to PuppetMaster
                     if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
@@ -553,8 +614,6 @@ namespace Operator
 
                         //obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
                         asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, tuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
-
-
                     }
 
                 }
@@ -568,7 +627,7 @@ namespace Operator
 
                     }).Start();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     //TODO: we probably dont want to catch all but for now 
                     // what we do may depends on semantics
@@ -696,14 +755,14 @@ namespace Operator
         //}
 
         /// <summary>
-        /// for the first delivery return index=0 because that is the only availale
+        /// Get the URL of the downsteram operator to send the tuples to.
+        /// 
+        /// For the first delivery return index=0 because that is the only one availale.
         /// </summary>
         /// <returns></returns>
-
-
         private string GetOutUrl(OperatorTuple tuple)
         {
-            //routing 
+            // routing 
             // FIX check null of url on call method
 
             List<string> aliveOutReps = getAliveOutReps();
@@ -841,7 +900,7 @@ namespace Operator
                         // this is the "origin" of a tuple in the stream, so create a new Id for it. This ID
                         // will be the same for the whole stream.
                         string newId = GetNewId();
-                        tuples.Add(new OperatorTuple(tuple, newId));
+                        tuples.Add(new OperatorTuple(tuple, newId, MyAddr));
                         line = streamReader.ReadLine();
                     }
                 }
