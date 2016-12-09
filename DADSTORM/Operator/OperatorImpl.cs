@@ -925,6 +925,10 @@ namespace Operator
         public List<OperatorTuple> ReadTuples(string filePath)
         {
             List<OperatorTuple> tuples = new List<OperatorTuple>();
+            if (!File.Exists(filePath))
+            {
+                throw new FileNotFoundException(string.Format("Operator {0} tried to read file {1}, but it was not found", MyId, filePath));
+            }
             
             using (FileStream fileStream = new FileStream(
             filePath,
