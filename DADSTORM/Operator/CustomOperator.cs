@@ -28,6 +28,8 @@ namespace Operator
         /// </summary>
         private string method_;
 
+        private int counter = 0;
+
         public CustomOperator(OperatorSpec spec,string dll_d, string class_c, string method_m, string myAddr, int repId) : base(spec, myAddr, repId)
         {
             dll_ = Directory.GetCurrentDirectory() + "\\" + dll_d;
@@ -46,6 +48,7 @@ namespace Operator
 
         public override List<OperatorTuple> Operation(OperatorTuple tuple)
         {
+            
             // TODO: BUG when multiple replicas execute on the same machine (see issue #48)
             Assembly assembly = Assembly.LoadFile(dll_);
             if (assembly != null)
@@ -68,7 +71,8 @@ namespace Operator
 
                         foreach (List<string> t in ((IEnumerable)result))
                         {
-                            theRes.Add(new OperatorTuple(t, tuple.Id, MyAddr));
+                            theRes.Add(new OperatorTuple(t, MyId + counter, MyAddr));
+                            counter++;
                         }
                         /*
                         Console.Write("FOR tuple: ");
@@ -81,13 +85,19 @@ namespace Operator
                             Console.WriteLine();
                          */
 
+                        if (lastOp)
+                        {
+                            Console.WriteLine("### CUSTOM OPERATOR SENDING ACK! ###");
+                            SendACK(tuple);
+                        }
+
                         return theRes;
                     }
                     else
-                        throw new NullReferenceException("No method " + method_ + "END");
+                        throw new NullReferenceException("No method " + method_ );
                 }
                 else
-                    throw new NullReferenceException("No type " + class_ + "END");
+                    throw new NullReferenceException("No type " + class_);
             }
             else
                 throw new NullReferenceException("No assembly");

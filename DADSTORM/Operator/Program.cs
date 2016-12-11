@@ -44,7 +44,7 @@ namespace Operator
                     
                         OperatorSpec opSpec = ReadFromByteArray(spec);
                         OperatorImpl op = null;
-                        
+                        Console.Title = opSpec.Id + " " + repId + " " + myAddr;
                         // Console.WriteLine("Parametros do config");
                         // Console.WriteLine(opSpec.ToString());
 
@@ -96,6 +96,7 @@ namespace Operator
                     catch (Exception e)
                     {
                         Console.WriteLine(ERR_CONF_FILE);
+                        Console.WriteLine(e.Message);
                         Console.WriteLine(e.StackTrace);
 
                     }

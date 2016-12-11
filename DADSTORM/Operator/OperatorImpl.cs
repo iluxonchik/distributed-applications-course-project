@@ -43,7 +43,7 @@ namespace Operator
 
         // MOST IMPORTANT VARIABLE IN WHOLE PROJECT
         private const bool DEBUG = true; // important print in the code, like ACKs status and stuff
-        private const bool DEBUG_GERAL = false; // general print made just to see other stuff like the tuples we send, waht tuple received
+        private const bool DEBUG_GERAL = true; // general print made just to see other stuff like the tuples we send, waht tuple received
 
         /// <summary>
         /// list of tupls waiting to be processed 
@@ -67,7 +67,7 @@ namespace Operator
         static readonly int DELTA_TIME = 30 * 1000; // min * seg * millisecond
         Dictionary<string, long> allReplicas;
         List<string> outReps;
-        bool lastOp = false;
+        protected bool lastOp = false;
 
         // Variables used in Exactly-Once-Semantics
         public Semantics Semantics { get; private set; } // for easy access
@@ -94,6 +94,8 @@ namespace Operator
         public OperatorImpl(OperatorSpec spec, string myAddr, int repId)
         {
             this.Spec = spec;
+            MyId = spec.Id;
+            Semantics = spec.Semantics;
 
             outReps = new List<string>();
             if (this.Spec.OutputOperators != null)
@@ -116,8 +118,6 @@ namespace Operator
             InitFaultCounter();
             heartBeat();
             //PrintWaitingTuples();
-            Semantics = spec.Semantics;
-            MyId = spec.Id;
         }
 
         private void StartWatchdogThread()
@@ -135,21 +135,37 @@ namespace Operator
 
                     lock (tuplesAwaitingACKLock)
                     {
+                        var keyList = tuplesAwaitingACK.Keys.Clone();
                         // check the ACK table, if necesary schedule a re-send
-                        foreach (KeyValuePair<string, OutgoingTuple> kvp in tuplesAwaitingACK)
+                        foreach (var key in keyList)
                         {
-                            if (CheckTupleNeedsScheduling(kvp.Value))
+                            if (DEBUG_GERAL)
                             {
+                                Console.WriteLine(string.Format("====== Watchdog thread starting iteration over {0} items =======", keyList.Count));
+                            }
+                            OutgoingTuple ot = tuplesAwaitingACK[key];
+                            if (CheckTupleNeedsScheduling(ot))
+                            {
+                                OperatorTuple tuple = ot.Tuple;
+
                                 if (DEBUG_GERAL)
-                                    Console.WriteLine(string.Format("Watchdog thread: tuple {0} re-scheduled for sending", kvp.Value.Tuple));
-                                tuplesAwaitingACK.Remove(kvp.Key); // NOTE: order important here: first remove, then add to waitingTuples queue
-                                waitingTuples.Add(kvp.Value.Tuple);
+                                { 
+                                    Console.WriteLine(string.Format("Watchdog thread: tuple {0} re-scheduled for sending", tuple));
+                                }
+
+                                tuplesAwaitingACK.Remove(key); // NOTE: order important here: first remove, then add to waitingTuples queue
+                                tuple.YouAreParent = true; // just to be extra sure
+                                PutTupleInWaitingList(tuple);
                             }
                             else
                             {
                                 // Shouldn't do anything (no-op)
                                 if (DEBUG_GERAL)
-                                    Console.WriteLine(string.Format("Watchdog thread: tuple {0} DOES NOT need scheduling for re-sending yet", kvp.Value.Tuple));
+                                    Console.WriteLine(string.Format("Watchdog thread: tuple {0} DOES NOT need scheduling for re-sending yet", ot.Tuple));
+                            }
+                            if (DEBUG_GERAL)
+                            {
+                                Console.WriteLine(string.Format("====== Watchdog thread ended iteration over {0} items =======", keyList.Count));
                             }
                         }
                     }
@@ -158,6 +174,16 @@ namespace Operator
                 }
             }
             ).Start();
+        }
+
+        private void PutTupleInWaitingList(OperatorTuple tuple)
+        {
+            lock (this)
+            {
+                Console.WriteLine(string.Format("PutTupleInWaitingList(): Putting tuple {0} in waiting list", tuple));
+                this.waitingTuples.Add(tuple);
+                Monitor.PulseAll(this);
+            }
         }
 
         /// <summary>
@@ -345,6 +371,7 @@ namespace Operator
 
             List<OperatorTuple> list = Operation(tuple);
 
+
             /*
             if ((Spec.Type == OperatorType.Custom) && RepId == 0 && !lastOp)
                 Crash();
@@ -389,26 +416,34 @@ namespace Operator
             List<OperatorTuple> result = resultsCache.Get(tuple.Id);
             if (result == null)
             {
+                Console.WriteLine("TreatTupleExactlyOnce(): Tuple not found in cache, computing and storing.");
                 list = Operation(tuple);
                 resultsCache.Add(tuple.Id, list);
             }
             else
             {
                 list = result;
+                Console.WriteLine("TreatTupleExactlyOnce(): Found in cache tuple {0}", list);
+                SendACK(tuple);
             }
 
 
-            foreach (OperatorTuple tupleX in list)
+            for (int i = 0; i < list.Count; i++)
             {
+                OperatorTuple tupleX = list[i]; ;
+                OperatorTuple newTuple = tupleX.Clone();
+                newTuple.SenderUrl = MyAddr;
                 if (tupleX != null)
                 {
                     if (DEBUG_GERAL)
                     {
-                        Console.WriteLine("Tuple threated");
+                        /*
+                        Console.WriteLine("Tuple Treated");
                         Console.WriteLine("Enviar: ");
                         foreach (string a in tupleX.Tuple)
                             Console.Write(a + " | ");
                         Console.WriteLine();
+                        */
                     }
                     if (!lastOp)
                     {
@@ -417,13 +452,24 @@ namespace Operator
                         if (tupleX.YouAreParent)
                         {
                             if (DEBUG)
+                            { 
                                 Console.WriteLine("TreatTupleExactlyOnce(): I am the parent, so I'm sending the tuple");
-                            SendTuple(tupleX);
-                            SendACK(tupleX);
+                            }
+
+                            SendTuple(newTuple);
+
+                            if (tupleX.SenderUrl != MyAddr)
+                            {
+                                Console.WriteLine("TreatTupleExactlyOnce(): sendig ACK to " + tupleX.SenderUrl);
+                                SendACK(tupleX);
+                            } else
+                            {
+                                Console.WriteLine("TreatTupleExactlyOnce(): skipping ACK sending. Reason: not sending ACK to myself.");
+                            }
                         }
                         else
                         {
-                            // I'm not the paret, so I'm not gonna send the tuple
+                            // I'm not the parent, so I'm not gonna send the tuple
                             // This "else" block shouldn't do anything, it's here just to print a debug message
                             if (DEBUG)
                                 Console.WriteLine("TreatTupleExactlyOnce(): I'm not the parent, so I'm not forwarding the tuple");
@@ -431,8 +477,6 @@ namespace Operator
                     }
                     else
                     {
-                        // TODO: NOTE: this will cause issues when using ExactlyOnce semantics with the last operator,
-                        // the same check for parent should be done at the last one.
                         if (DEBUG)
                             Console.WriteLine("lastOP");
                     }
@@ -518,7 +562,7 @@ namespace Operator
         /// </summary>
         public void ReceiveTuple(OperatorTuple tuple)
         {
-
+            Console.WriteLine("ReceiveTuple(): called with tuple {0}", tuple);
             if (Semantics == Semantics.ExactlyOnce)
             {
                 ReceiveTupleExactlyOnce(tuple);
@@ -531,88 +575,97 @@ namespace Operator
 
         private void ReceiveTupleOriginal(OperatorTuple tuple)
         {
-            while (true)
-            {
-                lock (this)
-                {
-                    if (DEBUG_GERAL)
-                    {
-                        Console.WriteLine("received tuple");
-                        foreach (string s in tuple.Tuple)
-                            Console.Write(s + " ");
-                        Console.WriteLine();
-                    }
 
-                    this.waitingTuples.Add(tuple);
-                    Monitor.PulseAll(this);
-                    break;
+            lock (this)
+            {
+                if (DEBUG_GERAL)
+                {
+                    Console.WriteLine("received tuple");
+                    foreach (string s in tuple.Tuple)
+                        Console.Write(s + " ");
+                    Console.WriteLine();
                 }
+
+                this.waitingTuples.Add(tuple);
+                Monitor.PulseAll(this);
             }
+
         }
 
         private void ReceiveTupleExactlyOnce(OperatorTuple tuple)
         {
-            while (true)
+
+            lock (this)
             {
-                lock (this)
+                if (tuple.YouAreParent)
                 {
-                    if (tuple.YouAreParent)
-                    {
-                        // TODO: clone tuple, set YouAreParent to False and forward it to all children
-                        OperatorTuple childTuple = tuple.Clone();
-                        childTuple.YouAreParent = false;
+                    Console.WriteLine("ReceiveTupleExactlyOnce(): receieved tuple: {0}", tuple);
+                    // TODO: clone tuple, set YouAreParent to False and forward it to all children
+                    OperatorTuple childTuple = tuple.Clone();
+                    childTuple.YouAreParent = false;
+                    Console.WriteLine("\tReceiveTupleExactlyOnce(): Cloned tuple...");
+                    List<string> myAliveReps = GetMyAliveReps();
+                    Console.WriteLine("ReceiveTupleExactlyOnce(): myAliveReps.Count = {0}", myAliveReps.Count);
 
-                        List<string> myAliveReps = GetMyAliveReps();
-                        foreach (string url in myAliveReps)
+                    foreach (string url in myAliveReps)
+                    {
+                        try
                         {
-                            try
-                            {
-                                IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
-                                asyncServiceCall(opServer.ReceiveTuple, childTuple, url);
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e.StackTrace);
-                            }
+                            Console.WriteLine("ReceiveTupleExactlyOnce(): Sending tuple {0} to child at url {1}", childTuple, url);
+                            IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
+                            asyncServiceCall(opServer.ReceiveTuple, childTuple, url);
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.StackTrace);
                         }
                     }
-
-                    if (DEBUG)
+                } else
+                {
+                    if (DEBUG_GERAL)
                     {
-                        Console.WriteLine("ReceiveTupleExactlyOnce(): Received a tuple");
-                        foreach (string s in tuple.Tuple)
-                        {
-                            Console.Write("\t" + s + " ");
-                        }
-                        Console.WriteLine();
+                        Console.WriteLine("ReceiveTupleExactlyOnce(): Received tuple {0}, but I'm not parent, so I'm not sending it to children.");
                     }
-
-                    // The decision of whether the tuple should be processed or retrieved from cache
-                    // is done in TreatTuple() method.
-                    this.waitingTuples.Add(tuple);
-                    Monitor.PulseAll(this);
-                    break;
                 }
+
+                if (DEBUG)
+                {
+                    Console.WriteLine("ReceiveTupleExactlyOnce(): Received a tuple");
+                    foreach (string s in tuple.Tuple)
+                    {
+                        Console.Write("\t" + s + " ");
+                    }
+                    Console.WriteLine();
+                }
+
+                // The decision of whether the tuple should be processed or retrieved from cache
+                // is done in TreatTuple() method.
+                this.waitingTuples.Add(tuple);
+                Monitor.PulseAll(this);
+
             }
         }
 
         private List<string> GetMyAliveReps()
         {
+            Console.WriteLine("GetMyAliveReps(): Entering...");
             List<string> aliveOutReps = new List<string>();
-            if (DEBUG)
-                Console.WriteLine(string.Format("GetMyAliveReps(): Getting list of my alive replicas... [total replicas = {}]", aliveOutReps.Count));
+            Console.WriteLine("GetMyAliveReps(): Getting list of my alive replicas... [total replicas = {0}]", myReplicasURLs.Count);
             foreach (string url in this.myReplicasURLs)
             {
+                if (url == MyAddr)
+                {
+                    continue;
+                }
                 if (this.isAlive(url))
                 {
-                    if (DEBUG)
-                        Console.WriteLine(string.Format("\t{} is alive", url));
+                    Console.WriteLine("\t{0} is alive", url);
                     aliveOutReps.Add(url);
                 }
                 else
                 {
-                    if (DEBUG)
-                        Console.WriteLine(string.Format("\t{} is down"), url);
+                    
+                    Console.WriteLine("\t{0} is down", url);
                 }
             }
             return aliveOutReps;
@@ -743,41 +796,41 @@ namespace Operator
 
         private void SendTupleExactlyOnce(OperatorTuple tuple)
         {
+            OperatorTuple newTuple = tuple.Clone();
+
             string url = this.GetOutUrl(tuple);
             if (url != null)
                 try
                 {
-                    tuple.SenderUrl = MyAddr; // just to be extra sure that the ACK arrives to the right place
+                    newTuple.SenderUrl = MyAddr; // just to be extra sure that the ACK arrives to the right place
 
                     if (DEBUG_GERAL)
-                        Console.WriteLine("=============================> {0}", tuple.Id);
+                        Console.WriteLine("SendTupleExactlyOnce(): ===> Sending tuple with ID={0} to URL={1}", tuple.Id, url);
 
                     if (DEBUG)
                     {
                         Console.WriteLine("SendTupleExactlyOnce(): Sending tuple: ");
-                        foreach (string a in tuple.Tuple)
+                        foreach (string a in newTuple.Tuple)
                             Console.Write("\t" + a + " | ");
                         Console.WriteLine();
                     }
                     IOperatorProxy opServer = (IOperatorProxy)Activator.GetObject(typeof(IOperatorProxy), url);
 
                     // send tuple to the downstream operator
-                    asyncServiceCall(opServer.ReceiveTuple, tuple, url);
-                    lock (tuplesAwaitingACKLock)
-                    {
-                        tuplesAwaitingACK.Add(tuple.Id, new OutgoingTuple { Tuple = tuple, TimeSent = getCurrentTime() });
-                    }
+                    asyncServiceCall(opServer.ReceiveTuple, newTuple, url);
+
+                    tuplesAwaitingACK[tuple.Id] = new OutgoingTuple { Tuple = tuple, TimeSent = getCurrentTime() };
                     // send tuple to PuppetMaster
                     if (this.Spec.LoggingLevel.Equals(LoggingLevel.Full))
                     {
                         if (DEBUG_GERAL)
-                            Console.WriteLine("send tuples to ppm");
+                            Console.WriteLine("SendTupleExactlyOnce(): Sendig tuple to PPM");
                         IPuppetMasterProxy obj = (IPuppetMasterProxy)Activator.GetObject(
                                 typeof(IPuppetMasterProxy),
                                 String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
 
                         //obj.ReportTuple(this.Spec.Id, this.RepId, tuple);
-                        asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, tuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
+                        asyncServiceCall(obj.ReportTuple, this.Spec.Id, this.RepId, newTuple, String.Format(PM_ADDR_FMT, this.Spec.PuppetMasterUrl));
                     }
 
                 }
@@ -785,9 +838,10 @@ namespace Operator
                 {
                     new Thread(() =>
                     {
+                        Console.WriteLine("=========================================> BLAME IT ON PAULO <=========================================");
                         Thread.CurrentThread.IsBackground = true;
                         //TODO: se der merda a culpa e do paulo
-                        SendTuple(tuple);
+                        SendTuple(newTuple);
 
                     }).Start();
                 }
@@ -806,12 +860,17 @@ namespace Operator
         {
             try
             {
+                Console.WriteLine("asyncServiceCall(): Sending tuple with ID={0} to URL={1}", ot.Id, url);
                 RemoteAsyncDelegateOperatorTuple RemoteDel = new RemoteAsyncDelegateOperatorTuple(method);
                 // Call delegate to remote method
                 IAsyncResult RemAr = RemoteDel.BeginInvoke(ot, null, null);
                 // Wait for the end of the call and then explictly call EndInvoke
                 RemAr.AsyncWaitHandle.WaitOne();
-                RemoteDel.EndInvoke(RemAr);
+                Console.WriteLine("##asyncServiceCall() PASSED THROUGH WaitOne():## Sending tuple with ID={0} to URL={1}", ot.Id, url);
+                // RemoteDel.EndInvoke(RemAr);
+                Console.WriteLine("##asyncServiceCall() PASSED THROUGH EndInvoke():## Sending tuple with ID={0} to URL={1}", ot.Id, url);
+
+
             }
             catch (SocketException)
             {
@@ -924,17 +983,29 @@ namespace Operator
             return url;
         }
 
+      
         private bool isAlive(string url)
         {
+            if (DEBUG_GERAL)
+            {
+                Console.WriteLine("\tisAlive(): Checking if {0} is alive. MyAddr = {1}", url, MyAddr);
+                if (url == MyAddr)
+                {
+                    Console.WriteLine("[!!!]isAlive(): ERROR! Trying to check if MyAddr isAlive!-------------------#<");
+                }
+            }
             try
             {
                 long lastSeen = 0;
                 lock (this)
                 {
+                    Console.WriteLine("isAlive(): Trying to get allReplicas[url]");
                     lastSeen = this.allReplicas[url];
+                    Console.WriteLine("isAlive(): Got allReplicas[url]");
                 }
                 if ((this.getCurrentTime() - lastSeen) <= (NUM_FAILURES * DELTA_TIME) && this.countFails[url] < NUM_FAILURES)
                 {
+                    Console.WriteLine("isAlive(): All good, returning True");
                     return true;
                 }
                 lock (this)
@@ -947,8 +1018,13 @@ namespace Operator
             }
             catch (KeyNotFoundException)
             {
-                return false;
+                Console.WriteLine("isAlive(): KeyNotFoundExeption. Returning false...");
+                // let's assume that it's okay just this one time
+                allReplicas[url] = getCurrentTime();
+                return true;
             }
+
+            Console.WriteLine("isAlive(): Returning false...");
             return false;
         }
 
@@ -1023,7 +1099,7 @@ namespace Operator
                         // this is the "origin" of a tuple in the stream, so create a new Id for it. This ID
                         // will be the same for the whole stream.
                         string newId = GetNewId();
-                        tuples.Add(new OperatorTuple(tuple, newId, MyAddr));
+                        tuples.Add(new OperatorTuple(tuple, newId, MyAddr) { SenderUrl = MyAddr });
                         line = streamReader.ReadLine();
                     }
                 }
